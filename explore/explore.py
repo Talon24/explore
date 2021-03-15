@@ -17,7 +17,10 @@ def _map_dunders(thing, items):
     ops = []
     for item in items:
         if item in mapping:
-            ops.append(mapping[item])
+            text = mapping[item]
+            if not text.isalpha():
+                text = "{}{}{}".format(colorama.Fore.LIGHTBLUE_EX, text, colorama.Fore.RESET)
+            ops.append(text)
     # Special case: Hash. Classes can have hashes, but not their instances, or hash might be None.
     # list has a __hash__ - attr (None), even though it is not hashable
     if "__hash__" in items and thing.__hash__:
