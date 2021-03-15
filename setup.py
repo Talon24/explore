@@ -8,7 +8,7 @@ setup(
     author='Talon24',
     author_email='talontalon24@gmail.com',
     license='MIT',
-    packages=['explore'],
+    packages=['.'],
     install_requires=['terminaltables>=3.1.0',
                       'colorama>=0.4.3',
                       'six',

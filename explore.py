@@ -10,14 +10,64 @@ import terminaltables
 colorama.init()
 
 
+_MAPPING = {
+    "__add__": "+",
+    "__sub__": "-",
+    "__mul__": "*",
+    "__truediv__": "/",
+    "__floordiv__": "//",
+    "__matmul__": "@",
+    "__pow__": "**",
+    "__mod__": "%",
+    "__divmod__": "divmod",
+    "__and__": "&",
+    "__or__": "|",
+    "__xor__": "^",
+    "__lshift__": "<<",
+    "__rshift__": ">>",
+    "__iadd__": "+=",
+    "__isub__": "-=",
+    "__imul__": "*=",
+    "__itruediv__": "/=",
+    "__ifloordiv__": "//=",
+    "__imatmul__": "@=",
+    "__ipow__": "**=",
+    "__imod__": "%=",
+    "__iand__": "&=",
+    "__ior__": "|=",
+    "__ixor__": "^=",
+    "__ilshift__": "<<=",
+    "__irshift__": ">>=",
+    "__eq__": "==",
+    "__ne__": "!=",
+    "__lt__": "<",
+    "__gt__": ">",
+    "__leq__": "<=",
+    "__geq__": ">=",
+    "__invert__": "~",
+    "__pos__": "+()",
+    "__neg__": "-()",
+    "__abs__": "abs",
+    "__len__": "len",
+    "__int__": "int",
+    "__float__": "float",
+    "__round__": "round",
+    "__enter__": "with:",
+    "__await__": "await",
+    "__contains__": "in",
+    "__getitem__": "[]",
+    "__setitem__": "[] = x",
+    "__delitem__": "del x",
+    "__call__": "()"
+}
+
+
 def _map_dunders(thing, items):
     """Process the Dunder methods to make them more human readable."""
-    with open("dunder_mapping.json") as file:
-        mapping = json.load(file)
     ops = []
     for item in items:
-        if item in mapping:
-            text = mapping[item]
+        if item in _MAPPING:
+            text = _MAPPING[item]
             if not text.isalpha():
                 text = "{}{}{}".format(colorama.Fore.LIGHTBLUE_EX, text, colorama.Fore.RESET)
             ops.append(text)
