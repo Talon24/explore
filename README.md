@@ -5,6 +5,17 @@ It takes the output from `dir()`, checks this and classifies it in a table.
 With that, you don't have to read the entire output of `dir()` and visually
 filter it for the relevant information.
 
+## Installation
+
+Install the package:
+```bash
+pip install git+git://github.com/Talon24/explore
+```
+or
+```bash
+pip install git+https://github.com/Talon24/explore
+```
+
 ## Example
 
 From this
@@ -57,16 +68,12 @@ ex(datetime.datetime.now())
 ╚══════════════════╩═══════════════════════╩══════╝
 ```
 
-
-## Installation
-
-Install the package:
-`pip install git+git://github.com/Talon24/explore`
-
 ## Usage
 
 The module's name is `explore` and it provides a function called `explore()`.
 To simplify exploration, i'd recommend aliasing it as something short like `ex`. 
+
+### Module
 
 ```python
 from explore import explore as ex
@@ -91,5 +98,102 @@ ex(pathlib)
 ╚═══════════╩═══════════╩═════════════════════╩═════════════════╩═════════════════════════╝
 ```
 
+### Function
+
+```python
+def a_function(pos: int, /, both: float, untyped=4, *, kw_only: str = "blue") -> complex:
+    """Kinds of arguments."""
+
+ex(a_function)
+  Description:
+Kinds of arguments.
+╔ Function a_function -> complex ════════════════════╗
+║ Argument ║ Default ║ Type  ║ Kind                  ║
+╠══════════╬═════════╬═══════╬═══════════════════════╣
+║ pos      ║ ---     ║ int   ║ Positional Only       ║
+║ both     ║ ---     ║ float ║ Positional Or Keyword ║
+║ untyped  ║ 4       ║ Any   ║ Positional Or Keyword ║
+║ kw_only  ║ 'blue'  ║ str   ║ Keyword Only          ║
+╚══════════╩═════════╩═══════╩═══════════════════════╝
+```
+
+### Class
+
+On Classes (Not instances), the constructor is also printed.
+
+```python
+import requests
+ex(requests.Request)
+
+  Description:
+A user-created :class:`Request <Request>` object.
+╔ type: Request ══╦══════╗
+║ Functions       ║ Ops  ║
+╠═════════════════╬══════╣
+║ deregister_hook ║ !=   ║
+║ prepare         ║ <    ║
+║ register_hook   ║ ==   ║
+║                 ║ >    ║
+║                 ║ hash ║
+╚═════════════════╩══════╝
+  Description:
+Initialize self.
+╔══════════╦═════════╗
+║ Argument ║ Default ║
+╠══════════╬═════════╣
+║ self     ║ ---     ║
+║ method   ║ None    ║
+║ url      ║ None    ║
+║ headers  ║ None    ║
+║ files    ║ None    ║
+║ data     ║ None    ║
+║ params   ║ None    ║
+║ auth     ║ None    ║
+║ cookies  ║ None    ║
+║ hooks    ║ None    ║
+║ json     ║ None    ║
+╚══════════╩═════════╝
+```
+
+```python
+import fractions
+ex(fractions.Fraction)
+
+  Description:
+This class implements rational numbers.
+╔ ABCMeta: Fraction ═══════════════╦═══════════════════════╦════════╗
+║ Methods      ║ Functions         ║ Data                  ║ Ops    ║
+╠══════════════╬═══════════════════╬═══════════════════════╬════════╣
+║ from_decimal ║ as_integer_ratio  ║ denominator: property ║ !=     ║
+║ from_float   ║ conjugate         ║ imag: property        ║ %      ║
+║              ║ limit_denominator ║ numerator: property   ║ *      ║
+║              ║                   ║ real: property        ║ **     ║
+║              ║                   ║                       ║ +      ║
+║              ║                   ║                       ║ +()    ║
+║              ║                   ║                       ║ -      ║
+║              ║                   ║                       ║ -()    ║
+║              ║                   ║                       ║ /      ║
+║              ║                   ║                       ║ //     ║
+║              ║                   ║                       ║ <      ║
+║              ║                   ║                       ║ ==     ║
+║              ║                   ║                       ║ >      ║
+║              ║                   ║                       ║ abs    ║
+║              ║                   ║                       ║ divmod ║
+║              ║                   ║                       ║ float  ║
+║              ║                   ║                       ║ hash   ║
+║              ║                   ║                       ║ round  ║
+╚══════════════╩═══════════════════╩═══════════════════════╩════════╝
+  Description:
+Initialize self.
+╔ Constructor __init__ ════════════════╗
+║ Argument ║ Default ║ Kind            ║
+╠══════════╬═════════╬═════════════════╣
+║ self     ║ ---     ║ Positional Only ║
+║ args     ║ ---     ║ Var Positional  ║
+║ kwargs   ║ ---     ║ Var Keyword     ║
+╚══════════╩═════════╩═════════════════╝
+```
+
+## Automatic import
 If you have ipython, you can create a file in `~/.ipython/profile_default/startup/` that imports it,
 it will then be available at the start of ipython.
