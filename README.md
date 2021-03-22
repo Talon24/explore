@@ -9,6 +9,10 @@ filter it for the relevant information.
 
 Install the package:
 ```bash
+pip install object-explore
+```
+or
+```bash
 pip install git+git://github.com/Talon24/explore
 ```
 or
@@ -34,44 +38,61 @@ from explore import explore as ex
 import datetime
 
 ex(datetime.datetime.now())
-╔Class datetime════╦═══════════════════════╦══════╗
-║ Methods          ║ Data                  ║ Ops  ║
-╠══════════════════╬═══════════════════════╬══════╣
-║ astimezone       ║ day: int              ║ !=   ║
-║ combine          ║ fold: int             ║ +    ║
-║ ctime            ║ hour: int             ║ -    ║
-║ date             ║ max: datetime         ║ <    ║
-║ dst              ║ microsecond: int      ║ ==   ║
-║ fromisocalendar  ║ min: datetime         ║ >    ║
-║ fromisoformat    ║ minute: int           ║ hash ║
-║ fromordinal      ║ month: int            ║      ║
-║ fromtimestamp    ║ resolution: timedelta ║      ║
-║ isocalendar      ║ second: int           ║      ║
-║ isoformat        ║ tzinfo: NoneType      ║      ║
-║ isoweekday       ║ year: int             ║      ║
-║ now              ║                       ║      ║
-║ replace          ║                       ║      ║
-║ strftime         ║                       ║      ║
-║ strptime         ║                       ║      ║
-║ time             ║                       ║      ║
-║ timestamp        ║                       ║      ║
-║ timetuple        ║                       ║      ║
-║ timetz           ║                       ║      ║
-║ today            ║                       ║      ║
-║ toordinal        ║                       ║      ║
-║ tzname           ║                       ║      ║
-║ utcfromtimestamp ║                       ║      ║
-║ utcnow           ║                       ║      ║
-║ utcoffset        ║                       ║      ║
-║ utctimetuple     ║                       ║      ║
-║ weekday          ║                       ║      ║
-╚══════════════════╩═══════════════════════╩══════╝
+```
+```
+  Description:
+datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
+
+The year, month and day arguments are required.
++ Class datetime --+-----------------------+------+
+| Methods          | Data                  | Ops  |
++------------------+-----------------------+------+
+| astimezone       | day: int              | !=   |
+| combine          | fold: int             | +    |
+| ctime            | hour: int             | -    |
+| date             | max: datetime         | <    |
+| dst              | microsecond: int      | ==   |
+| fromisocalendar  | min: datetime         | >    |
+| fromisoformat    | minute: int           | hash |
+| fromordinal      | month: int            |      |
+| fromtimestamp    | resolution: timedelta |      |
+| isocalendar      | second: int           |      |
+| isoformat        | tzinfo: NoneType      |      |
+| isoweekday       | year: int             |      |
+| now              |                       |      |
+| replace          |                       |      |
+| strftime         |                       |      |
+| strptime         |                       |      |
+| time             |                       |      |
+| timestamp        |                       |      |
+| timetuple        |                       |      |
+| timetz           |                       |      |
+| today            |                       |      |
+| toordinal        |                       |      |
+| tzname           |                       |      |
+| utcfromtimestamp |                       |      |
+| utcnow           |                       |      |
+| utcoffset        |                       |      |
+| utctimetuple     |                       |      |
+| weekday          |                       |      |
++------------------+-----------------------+------+
 ```
 
 ## Usage
 
 The module's name is `explore` and it provides a function called `explore()`.
 To simplify exploration, i'd recommend aliasing it as something short like `ex`. 
+### Settings
+
+You can change the style of the table. The `SingleTable` is the default, if the text viewer can't handle unicode,
+then the `AsciiTable` might be useful.
+```python
+import explore
+explore.TABLETYPE = explore.terminaltables.AsciiTable
+explore.TABLETYPE = explore.terminaltables.SingleTable
+explore.TABLETYPE = explore.terminaltables.DoubleTable
+explore.TABLETYPE = explore.terminaltables.GithubFlavoredMarkdownTable
+```
 
 ### Module
 
@@ -80,41 +101,45 @@ from explore import explore as ex
 import pathlib
 
 ex(pathlib)
-╔module: pathlib════════╦═════════════════════╦═════════════════╦═════════════════════════╗
-║ Constants ║ Modules   ║ Functions           ║ Classes         ║ Data                    ║
-╠═══════════╬═══════════╬═════════════════════╬═════════════════╬═════════════════════════╣
-║ EBADF     ║ fnmatch   ║ urlquote_from_bytes ║ Path            ║ supports_symlinks: bool ║
-║ EINVAL    ║ functools ║                     ║ PosixPath       ║                         ║
-║ ELOOP     ║ io        ║                     ║ PurePath        ║                         ║
-║ ENOENT    ║ nt        ║                     ║ PurePosixPath   ║                         ║
-║ ENOTDIR   ║ ntpath    ║                     ║ PureWindowsPath ║                         ║
-║ S_ISBLK   ║ os        ║                     ║ Sequence        ║                         ║
-║ S_ISCHR   ║ posixpath ║                     ║ WindowsPath     ║                         ║
-║ S_ISDIR   ║ re        ║                     ║ attrgetter      ║                         ║
-║ S_ISFIFO  ║ sys       ║                     ║                 ║                         ║
-║ S_ISLNK   ║           ║                     ║                 ║                         ║
-║ S_ISREG   ║           ║                     ║                 ║                         ║
-║ S_ISSOCK  ║           ║                     ║                 ║                         ║
-╚═══════════╩═══════════╩═════════════════════╩═════════════════╩═════════════════════════╝
+```
+```
++ module: pathlib ------+---------------------+-----------------+-------------------------+
+| Constants | Modules   | Functions           | Classes         | Data                    |
++-----------+-----------+---------------------+-----------------+-------------------------+
+| EBADF     | fnmatch   | urlquote_from_bytes | Path            | supports_symlinks: bool |
+| EINVAL    | functools |                     | PosixPath       |                         |
+| ELOOP     | io        |                     | PurePath        |                         |
+| ENOENT    | nt        |                     | PurePosixPath   |                         |
+| ENOTDIR   | ntpath    |                     | PureWindowsPath |                         |
+| S_ISBLK   | os        |                     | Sequence        |                         |
+| S_ISCHR   | posixpath |                     | WindowsPath     |                         |
+| S_ISDIR   | re        |                     | attrgetter      |                         |
+| S_ISFIFO  | sys       |                     |                 |                         |
+| S_ISLNK   |           |                     |                 |                         |
+| S_ISREG   |           |                     |                 |                         |
+| S_ISSOCK  |           |                     |                 |                         |
++-----------+-----------+---------------------+-----------------+-------------------------+
 ```
 
 ### Function
 
 ```python
+from explore import explore as ex
 def a_function(pos: int, /, both: float, untyped=4, *, kw_only: str = "blue") -> complex:
     """Kinds of arguments."""
-
 ex(a_function)
+```
+```
   Description:
 Kinds of arguments.
-╔ Function a_function -> complex ════════════════════╗
-║ Argument ║ Default ║ Type  ║ Kind                  ║
-╠══════════╬═════════╬═══════╬═══════════════════════╣
-║ pos      ║ ---     ║ int   ║ Positional Only       ║
-║ both     ║ ---     ║ float ║ Positional Or Keyword ║
-║ untyped  ║ 4       ║ Any   ║ Positional Or Keyword ║
-║ kw_only  ║ 'blue'  ║ str   ║ Keyword Only          ║
-╚══════════╩═════════╩═══════╩═══════════════════════╝
++ Function a_function -> complex --------------------+
+| Argument | Default | Type  | Kind                  |
++----------+---------+-------+-----------------------+
+| pos      | ---     | int   | Positional Only       |
+| both     | ---     | float | Positional Or Keyword |
+| untyped  | 4       | Any   | Positional Or Keyword |
+| kw_only  | 'blue'  | str   | Keyword Only          |
++----------+---------+-------+-----------------------+
 ```
 
 ### Class
@@ -122,76 +147,80 @@ Kinds of arguments.
 On Classes (Not instances), the constructor is also printed.
 
 ```python
+from explore import explore as ex
 import requests
 ex(requests.Request)
-
+```
+```
   Description:
 A user-created :class:`Request <Request>` object.
-╔ type: Request ══╦══════╗
-║ Functions       ║ Ops  ║
-╠═════════════════╬══════╣
-║ deregister_hook ║ !=   ║
-║ prepare         ║ <    ║
-║ register_hook   ║ ==   ║
-║                 ║ >    ║
-║                 ║ hash ║
-╚═════════════════╩══════╝
++ type: Request --+------+
+| Functions       | Ops  |
++-----------------+------+
+| deregister_hook | !=   |
+| prepare         | <    |
+| register_hook   | ==   |
+|                 | >    |
+|                 | hash |
++-----------------+------+
   Description:
 Initialize self.
-╔══════════╦═════════╗
-║ Argument ║ Default ║
-╠══════════╬═════════╣
-║ self     ║ ---     ║
-║ method   ║ None    ║
-║ url      ║ None    ║
-║ headers  ║ None    ║
-║ files    ║ None    ║
-║ data     ║ None    ║
-║ params   ║ None    ║
-║ auth     ║ None    ║
-║ cookies  ║ None    ║
-║ hooks    ║ None    ║
-║ json     ║ None    ║
-╚══════════╩═════════╝
++ Constructor -------+
+| Argument | Default |
++----------+---------+
+| self     | ---     |
+| method   | None    |
+| url      | None    |
+| headers  | None    |
+| files    | None    |
+| data     | None    |
+| params   | None    |
+| auth     | None    |
+| cookies  | None    |
+| hooks    | None    |
+| json     | None    |
++----------+---------+
 ```
 
 ```python
+from explore import explore as ex
 import fractions
 ex(fractions.Fraction)
-
+```
+```
   Description:
 This class implements rational numbers.
-╔ ABCMeta: Fraction ═══════════════╦═══════════════════════╦════════╗
-║ Methods      ║ Functions         ║ Data                  ║ Ops    ║
-╠══════════════╬═══════════════════╬═══════════════════════╬════════╣
-║ from_decimal ║ as_integer_ratio  ║ denominator: property ║ !=     ║
-║ from_float   ║ conjugate         ║ imag: property        ║ %      ║
-║              ║ limit_denominator ║ numerator: property   ║ *      ║
-║              ║                   ║ real: property        ║ **     ║
-║              ║                   ║                       ║ +      ║
-║              ║                   ║                       ║ +()    ║
-║              ║                   ║                       ║ -      ║
-║              ║                   ║                       ║ -()    ║
-║              ║                   ║                       ║ /      ║
-║              ║                   ║                       ║ //     ║
-║              ║                   ║                       ║ <      ║
-║              ║                   ║                       ║ ==     ║
-║              ║                   ║                       ║ >      ║
-║              ║                   ║                       ║ abs    ║
-║              ║                   ║                       ║ divmod ║
-║              ║                   ║                       ║ float  ║
-║              ║                   ║                       ║ hash   ║
-║              ║                   ║                       ║ round  ║
-╚══════════════╩═══════════════════╩═══════════════════════╩════════╝
++ ABCMeta: Fraction ---------------+-----------------------+--------+
+| Methods      | Functions         | Data                  | Ops    |
++--------------+-------------------+-----------------------+--------+
+| from_decimal | as_integer_ratio  | denominator: property | !=     |
+| from_float   | conjugate         | imag: property        | %      |
+|              | limit_denominator | numerator: property   | *      |
+|              |                   | real: property        | **     |
+|              |                   |                       | +      |
+|              |                   |                       | +()    |
+|              |                   |                       | -      |
+|              |                   |                       | -()    |
+|              |                   |                       | /      |
+|              |                   |                       | //     |
+|              |                   |                       | <      |
+|              |                   |                       | ==     |
+|              |                   |                       | >      |
+|              |                   |                       | abs    |
+|              |                   |                       | divmod |
+|              |                   |                       | float  |
+|              |                   |                       | hash   |
+|              |                   |                       | round  |
++--------------+-------------------+-----------------------+--------+
   Description:
 Initialize self.
-╔ Constructor __init__ ════════════════╗
-║ Argument ║ Default ║ Kind            ║
-╠══════════╬═════════╬═════════════════╣
-║ self     ║ ---     ║ Positional Only ║
-║ args     ║ ---     ║ Var Positional  ║
-║ kwargs   ║ ---     ║ Var Keyword     ║
-╚══════════╩═════════╩═════════════════╝
++ Constructor -------+-----------------+
+| Argument | Default | Kind            |
++----------+---------+-----------------+
+| self     | ---     | Positional Only |
+| args     | ---     | Var Positional  |
+| kwargs   | ---     | Var Keyword     |
++----------+---------+-----------------+
 ```
 
 ## Automatic import
