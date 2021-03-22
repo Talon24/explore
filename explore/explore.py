@@ -24,15 +24,15 @@ import inspect
 import six
 import colorama
 import terminaltables
+# import pkg_resources
 
 colorama.init()
 
 TABLETYPE = terminaltables.DoubleTable
 COLORIZE = True
 
-
-# with open(path.join(path.dirname(__file__), "mapping.json")) as file:
-#     _MAPPING = {file.read()}
+# _MAPPING = pkg_resources.resource_string("explore", "mapping.json")
+# Isn't created in a subdirectory without more than one module.
 _MAPPING = {
     "__add__": "+",
     "__sub__": "-",
@@ -237,15 +237,16 @@ if __name__ == '__main__':
     # explore(1)
     # explore("")
     # explore(list)
-    # explore(complex)
-    def a_function(pos: int, /, both: float, untyped=4, *, kw_only: str = "blue") -> complex:
-        """Kinds of arguments."""
-    def variadic_function(*args, reverse=True, **kwargs):
-        """Variadic arguments."""
+    explore(complex)
+    # def a_function(pos: int, /, both: float, untyped=4, *, kw_only: str = "blue") -> complex:
+    #     """Kinds of arguments."""
+    # def variadic_function(*args, reverse=True, **kwargs):
+    #     """Variadic arguments."""
     # explore(a_function)
     # explore(variadic_function)
-    import requests
-    explore(requests.Request)
-    # import fractions
-    # explore(fractions.Fraction)
-    # explore(property)
+    # import requests
+    # explore(requests.Request)
+    import fractions
+    explore(fractions.Fraction)
+    explore(open)
+    explore(property)

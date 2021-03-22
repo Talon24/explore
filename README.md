@@ -196,4 +196,4 @@ Initialize self.
 
 ## Automatic import
 If you have ipython, you can create a file in `~/.ipython/profile_default/startup/` that imports it,
-it will then be available at the start of ipython.
+it will then be available at the start of ipython. More explanation [here](https://towardsdatascience.com/how-to-automatically-import-your-favorite-libraries-into-ipython-or-a-jupyter-notebook-9c69d89aa343).

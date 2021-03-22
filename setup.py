@@ -1,14 +1,22 @@
 from setuptools import setup
 
+with open("README.md", encoding="utf8") as file:
+    description = file.read()
+
 setup(
     name='explore',
-    version='0.1.0',
+    version='0.1.1',
     description='Powerful human readable version of dir().',
+    long_description=description,
+    long_description_content_type="text/markdown",
     url='https://github.com/Talon24/explore',
     author='Talon24',
     author_email='talontalon24@gmail.com',
     license='MIT',
-    packages=['.'],
+    package_dir={"": "explore"},
+    py_modules=["explore"],
+    # package_data={'explore': ['mapping.json']},
+    # include_package_data=True,
     install_requires=['terminaltables>=3.1.0',
                       'colorama>=0.4.3',
                       'six',
@@ -32,3 +40,4 @@ setup(
         'Programming Language :: Python :: 3.10',
     ],
 )
+
