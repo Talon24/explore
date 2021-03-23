@@ -84,8 +84,8 @@ The module's name is `explore` and it provides a function called `explore()`.
 To simplify exploration, i'd recommend aliasing it as something short like `ex`. 
 ### Settings
 
-You can change the style of the table. The `SingleTable` is the default, if the text viewer can't handle unicode,
-then the `AsciiTable` might be useful.
+You can change the style of the table. The `DoubleTable` is the default, if the text viewer can't handle unicode,
+then the `AsciiTable` might be useful. Some examples to change the Table style:
 ```python
 import explore
 explore.TABLETYPE = explore.terminaltables.AsciiTable
