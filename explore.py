@@ -9,12 +9,12 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
 
-__all__ = ["explore", "explore_object", "explore_function"]
+__all__ = ["explore", "explore_object", "explore_signature"]
 
 import pydoc
 import inspect
@@ -87,19 +87,17 @@ def colored(data, color):
     """Color a string with colorama and reset."""
     if COLORIZE:
         return "{color}{data}{reset}".format(color=color, data=data,
-                                             reset=colorama.Fore.RESET)
+                                             reset=colorama.Style.RESET_ALL)
     else:
         return data
 
 
 def _map_dunders(thing, items):
-    """Process the Dunder methods to make them more human readable."""
+    """Match dunder methods to the operator/construct they are related to."""
     ops = []
     for item in items:
         if item in _MAPPING:
             text = _MAPPING[item]
-            if not text.isalpha():
-                text = colored(text, colorama.Fore.LIGHTBLUE_EX)
             ops.append(text)
     # Special case: Hash. Classes can have hashes, but not their instances,
     # or hash might be None.
@@ -138,16 +136,16 @@ def _prune_arguments_list(data, header):
         del header[kind_index]
 
 
-def explore_function(thing, show_hidden=False):
+def explore_signature(thing, show_hidden=False):
     """Show information about a function and its parameters as a table."""
     try:
         signature = inspect.signature(thing)
     except ValueError as exc:
         print(colored("{!r} does not reveal its signature.".format(
             thing), colorama.Fore.RED))
-        if "builtin" in str(exc):
-            # __build_class__, __import__, breakpoint, dir, getattr, iter,
-            # max, min, next, print, vars
+        standard_builtins = (__import__, breakpoint, dir, getattr, iter,
+                             max, min, next, print, vars)
+        if thing in standard_builtins:
             print(colored("Check the documentation at "
                           "https://docs.python.org/3/library/functions.html#{}"
                           " .".format(thing.__name__), colorama.Fore.RED))
@@ -155,39 +153,47 @@ def explore_function(thing, show_hidden=False):
     empty = inspect.Signature.empty
     header = ["Argument", "Default", "Type", "Kind"]
     data = []
+    return_type = signature.return_annotation
     for name, parameter in signature.parameters.items():
-        kind = parameter.kind.name.replace("_", " ").title()
-        default = repr(parameter.default) if parameter.default is not empty else "---"
-        type_name = parameter.annotation.__name__ if parameter.annotation is not empty else "Any"
-        data.append([str(i) for i in (name, default, type_name, kind)])
+        # kind = parameter.kind.name.replace("_", " ").title()
+        kind = parameter.kind.description
+        default = parameter.default
+        default = repr(default) if default is not empty else "---"
+        annotation = parameter.annotation
+        annotation = annotation.__name__ if annotation is not empty else "Any"
+        data.append([name, default, annotation, kind])
     # Coloring
     for row in data:
         if row[0] in ("self", "cls"):
             row[0] = colored(row[0], colorama.Fore.YELLOW)
-        elif row[1] == "---" and not row[3].startswith("Var"):
-            # Required argument, as no default is set. Variadic is allowed to be empty
+        elif row[1] == "---" and not row[3].startswith("var"):
+            # Required argument, as no default is set.
+            # Variadic is allowed to be empty, though.
             row[0] = colored(row[0], colorama.Fore.RED)
-    # Convert to Table
     if not show_hidden:
         _prune_arguments_list(data, header)
+    # Convert to Table
     table = TABLETYPE([header] + data)
-    if not thing.__name__ == "__init__":
+    if not inspect.isclass(thing):
         table.title = " Function {} ".format(thing.__name__)
-        if signature.return_annotation is not empty:
-            table.title += "-> {} ".format(signature.return_annotation.__name__)
+        if return_type is not inspect.Signature.empty:
+            table.title += "-> {} ".format(return_type.__name__)
     else:
         table.title = " Constructor "
-
     description = pydoc.getdoc(thing).split(".")[0]
     if description:
         print("  Description:\n{}.".format(description))
-    print(table.table)
+    if not len(data) == 0:
+        print(table.table)
+    else:
+        print("This Function takes no arguments.")
 
 
 def explore_object(thing, show_hidden=False):
     """Show dir(thing) as a table to make it more human readable."""
     items = set(dir(thing))
     data = dict()
+    # Extract members, assign them to categories
     data["Dunders"] = [
         item for item in items if item.startswith("__") and item.endswith("__")]
     items.difference_update(data["Dunders"])
@@ -211,11 +217,12 @@ def explore_object(thing, show_hidden=False):
     items.difference_update(data["Classes"])
     data["Data"] = list(items)
     data["Ops"] = _map_dunders(thing, data["Dunders"])
-
     _prune_data(thing, data)
-    data["Data"] = [
-        "{}: {}".format(item, colored(type(getattr(thing, item)).__name__,
-                        colorama.Fore.LIGHTCYAN_EX)) for item in data["Data"]]
+
+    # color operators
+    data["Ops"] = [colored(text, colorama.Fore.LIGHTBLUE_EX)
+                   for text in data["Ops"]
+                   if text.isalpha()]
 
     if not show_hidden:
         hidden_names = ["Secrets", "Dunders"]
@@ -224,6 +231,15 @@ def explore_object(thing, show_hidden=False):
                 del data[name]
             except KeyError:
                 pass
+    # color types
+    newdata = []
+    for item in data["Data"]:
+        type_ = colored(type(getattr(thing, item)).__name__,
+                        colorama.Fore.LIGHTCYAN_EX)
+        newdata.append("{}: {}".format(item, type_))
+    data["Data"] = newdata
+
+    # list-of-colums to list-of-rows
     with_header = [
         [key] + sorted(value) for key, value in data.items() if len(value) > 0]
     rotated = [row for row in itertools.zip_longest(*with_header, fillvalue="")]
@@ -242,12 +258,17 @@ def explore(thing, show_hidden=False):
     """Show what you can do with an object.
 
     Depending on the with explore_function or explore_object.
+    Note that built-in objects or functions might not be matched correctly.
     """
-    if inspect.isfunction(thing) or inspect.isbuiltin(thing):
-        explore_function(thing, show_hidden=show_hidden)
+    if (
+            inspect.isfunction(thing) or
+            inspect.ismethod(thing) or
+            inspect.isbuiltin(thing)  # This can miss, e.g. print, namedtuple
+    ):
+        explore_signature(thing, show_hidden=show_hidden)
     elif inspect.isclass(thing):
         explore_object(thing, show_hidden=show_hidden)
-        explore_function(thing.__init__, show_hidden=show_hidden)
+        explore_signature(thing, show_hidden=show_hidden)
     else:
         explore_object(thing, show_hidden=show_hidden)
 
