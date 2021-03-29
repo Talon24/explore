@@ -13,7 +13,7 @@ setup(
     author='Talon24',
     author_email='talontalon24@gmail.com',
     license='MIT',
-    package=find_packages(),
+    packages=find_packages(),
     package_dir={"": "."},
     py_modules=["explore"],
     # package_data={'explore': ['mapping.json']},
