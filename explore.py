@@ -9,7 +9,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -221,8 +221,7 @@ def explore_object(thing, show_hidden=False):
 
     # color operators
     data["Ops"] = [colored(text, colorama.Fore.LIGHTBLUE_EX)
-                   for text in data["Ops"]
-                   if text.isalpha()]
+                   for text in data["Ops"]]
 
     if not show_hidden:
         hidden_names = ["Secrets", "Dunders"]
