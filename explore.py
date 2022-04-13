@@ -6,19 +6,25 @@ compact than help().
 """
 
 from __future__ import print_function
+from posixpath import split
+
+from sympy import re
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
 
 __all__ = ["explore", "explore_object", "explore_signature"]
 
+import os
+import copy
 import pydoc
 import inspect
 import itertools
+import collections
 
 import colorama
 import terminaltables
@@ -63,23 +69,26 @@ _MAPPING = {
     "__ne__": "!=",
     "__lt__": "<",
     "__gt__": ">",
-    "__leq__": "<=",
-    "__geq__": ">=",
+    "__le__": "<=",
+    "__ge__": ">=",
     "__invert__": "~",
     "__pos__": "+()",
     "__neg__": "-()",
     "__abs__": "abs",
     "__len__": "len",
     "__int__": "int",
+    "__str__": "str",
     "__float__": "float",
+    "__bytes__": "bytes",
     "__round__": "round",
-    "__enter__": "with:",
     "__await__": "await",
+    "__enter__": "with:",
+    "__iter__": "for:",
     "__contains__": "in",
     "__getitem__": "[]",
     "__setitem__": "[] = x",
     "__delitem__": "del x",
-    "__call__": "()"
+    "__call__": "()",
 }
 
 
@@ -95,9 +104,10 @@ def colored(data, color):
 def _map_dunders(thing, items):
     """Match dunder methods to the operator/construct they are related to."""
     ops = []
-    for item in items:
+    for item in items[:]:
         if item in _MAPPING:
             text = _MAPPING[item]
+            items.remove(item)
             ops.append(text)
     # Special case: Hash. Classes can have hashes, but not their instances,
     # or hash might be None.
@@ -160,7 +170,12 @@ def explore_signature(thing, show_hidden=False):
         default = parameter.default
         default = repr(default) if default is not empty else "---"
         annotation = parameter.annotation
-        annotation = annotation.__name__ if annotation is not empty else "Any"
+        if annotation is empty:
+            annotation = "Any"
+        elif isinstance(annotation, str):
+            pass
+        else:
+            annotation = annotation.__name__
         data.append([name, default, annotation, kind])
     # Coloring
     for row in data:
@@ -176,11 +191,13 @@ def explore_signature(thing, show_hidden=False):
     table = TABLETYPE([header] + data)
     if not inspect.isclass(thing):
         table.title = " Function {} ".format(thing.__name__)
-        if return_type is not inspect.Signature.empty:
+        if isinstance(return_type, str):
+            table.title += "-> {} ".format(return_type)
+        elif return_type is not inspect.Signature.empty:
             table.title += "-> {} ".format(return_type.__name__)
     else:
         table.title = " Constructor "
-    description = pydoc.getdoc(thing).split(".")[0]
+    description = _docstring_head(thing)
     if description:
         print("  Description:\n{}.".format(description))
     if not len(data) == 0:
@@ -189,8 +206,52 @@ def explore_signature(thing, show_hidden=False):
         print("This Function takes no arguments.")
 
 
-def explore_object(thing, show_hidden=False):
+def explore_object(thing, show_hidden=False, folding=True):
     """Show dir(thing) as a table to make it more human readable."""
+    data = _extract_members(thing)
+
+    # color operators
+    data["Ops"] = [colored(text, colorama.Fore.LIGHTBLUE_EX)
+                   for text in data["Ops"]]
+
+    if not show_hidden:
+        hidden_names = ["Secrets", "Dunders"]
+        for name in hidden_names:
+            try:
+                del data[name]
+            except KeyError:
+                pass
+    # color types
+    newdata = []
+    for item in data["Data"]:
+        type_ = colored(type(getattr(thing, item)).__name__,
+                        colorama.Fore.LIGHTCYAN_EX)
+        newdata.append("{}: {}".format(item, type_))
+    data["Data"] = newdata
+    if folding:
+        data = _minify_data(data, thing)
+
+    # list-of-colums to list-of-rows
+    parents = _parent_order(thing)
+    if parents:
+        print("  Inherits: \n{}".format(parents))
+    descr = _docstring_head(thing)
+    if descr:
+        print("  Description:\n{}.".format(descr))
+    table = _make_table(data, thing)
+    print(table.table)
+
+
+def _make_table(data, thing):
+    with_header = [
+        [key] + value for key, value in data.items() if len(value) > 0]
+    rotated = [row for row in itertools.zip_longest(*with_header, fillvalue="")]
+    table = TABLETYPE(rotated)
+    _set_table_title(thing, table)
+    return table
+
+
+def _extract_members(thing):
     items = set(dir(thing))
     data = dict()
     # Extract members, assign them to categories
@@ -218,42 +279,79 @@ def explore_object(thing, show_hidden=False):
     data["Data"] = list(items)
     data["Ops"] = _map_dunders(thing, data["Dunders"])
     _prune_data(thing, data)
+    for value in data.values():
+        value.sort()
+    return data
 
-    # color operators
-    data["Ops"] = [colored(text, colorama.Fore.LIGHTBLUE_EX)
-                   for text in data["Ops"]]
 
-    if not show_hidden:
-        hidden_names = ["Secrets", "Dunders"]
-        for name in hidden_names:
-            try:
-                del data[name]
-            except KeyError:
-                pass
-    # color types
-    newdata = []
-    for item in data["Data"]:
-        type_ = colored(type(getattr(thing, item)).__name__,
-                        colorama.Fore.LIGHTCYAN_EX)
-        newdata.append("{}: {}".format(item, type_))
-    data["Data"] = newdata
+def _fold_list(data, number):
+    quotient, remainder = divmod(len(data), number)
+    # return (data[i*quotient+min(i, remainder):(i+1)*quotient+min(i+1, remainder)] for i in range(number))
+    folded = (data[i*quotient+min(i, remainder):(i+1)*quotient+min(i+1, remainder)] for i in range(number))
+    folded = [["{a:{b}}".format(a=cell, b=max(len(cell_) for cell_ in col)) for cell in col] for col in folded]
+    block = [" ".join(items) for items in itertools.zip_longest(*folded, fillvalue="")]
+    return block
 
-    # list-of-colums to list-of-rows
-    with_header = [
-        [key] + sorted(value) for key, value in data.items() if len(value) > 0]
-    rotated = [row for row in itertools.zip_longest(*with_header, fillvalue="")]
-    table = TABLETYPE(rotated)
+
+def _minify_data(source_data, thing):
+    """Compress too long lists."""
+    term_size = os.get_terminal_size()
+    data = copy.deepcopy(source_data)
+    candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
+    table = _make_table(data, thing)
+    foldings = collections.defaultdict(lambda: 1)
+    while table.table_width < term_size.columns and len(candidate_list) > term_size.lines:
+        table = _make_table(data, thing)
+        foldings[candidate_key] += 1
+        new = _fold_list(source_data[candidate_key], foldings[candidate_key])
+        data_candidate = copy.deepcopy(data)
+        data_candidate[candidate_key] = new
+        table = _make_table(data_candidate, thing)
+        # print(table.table)
+        # import time; time.sleep(2)
+        if len(candidate_list) < term_size.lines or table.table_width > term_size.columns:
+            break
+        data = data_candidate
+        candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
+    return data
+
+
+
+def _set_table_title(thing, table):
     try:
         table.title = " {}: {} ".format(type(thing).__name__, thing.__name__)
     except AttributeError:
         table.title = " Class {} ".format(type(thing).__name__)
-    descr = pydoc.getdoc(thing).split(".")[0]
-    if descr:
-        print("  Description:\n{}.".format(descr))
-    print(table.table)
 
 
-def explore(thing, show_hidden=False):
+def _docstring_head(thing):
+    """Extract the head of a doc string."""
+    doc = pydoc.getdoc(thing)
+    if len(doc.splitlines()) < 10:
+        # docstring is short enough
+        return doc
+    else:
+        first_par = doc.partition("\n\n")[0]
+        if len(first_par.splitlines()) < 10:
+            # docstring has a paragraph that is short enough
+            return first_par + "\n..."
+        else:
+            # only head of docstring
+            return "\n".join(doc.splitlines()[:10]) + "\n..."
+
+
+def _parent_order(thing):
+    """Generate a string of parents of the given object"""
+    try:
+        parents = inspect.getmro(thing)
+    except AttributeError:
+        return None
+    if not parents[1:] == (object,):
+        return " -> ".join(x.__name__ for x in inspect.getmro(thing))
+    return None
+
+
+def explore(thing, show_hidden=False, folding=True):
     """Show what you can do with an object.
 
     Depending on the with explore_function or explore_object.
@@ -266,10 +364,10 @@ def explore(thing, show_hidden=False):
     ):
         explore_signature(thing, show_hidden=show_hidden)
     elif inspect.isclass(thing):
-        explore_object(thing, show_hidden=show_hidden)
+        explore_object(thing, show_hidden=show_hidden, folding=folding)
         explore_signature(thing, show_hidden=show_hidden)
     else:
-        explore_object(thing, show_hidden=show_hidden)
+        explore_object(thing, show_hidden=show_hidden, folding=folding)
 
 
 if __name__ == '__main__':

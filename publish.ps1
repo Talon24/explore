@@ -1,7 +1,11 @@
 if ("y" -eq (Read-Host -Prompt "Rebuild Project? (y)"))
 {
     Write-Host -ForegroundColor Yellow "Removing old dist..."
-    remove-item dist -Recurse
+    if (Test-Path dist) {
+        Remove-Item dist -Recurse
+        } else {
+            Write-Host -ForegroundColor Yellow "Dist folder not found."
+        }
     Write-Host -ForegroundColor Yellow "Building new dist..."
     python setup.py sdist bdist_wheel
     Write-Host -ForegroundColor DarkGreen "Finished Build"
