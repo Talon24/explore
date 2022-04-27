@@ -6,9 +6,6 @@ compact than help().
 """
 
 from __future__ import print_function
-from posixpath import split
-
-from sympy import re
 
 __author__ = "Talon24"
 __license__ = "MIT"
@@ -19,16 +16,15 @@ __status__ = "Developement"
 
 __all__ = ["explore", "explore_object", "explore_signature"]
 
-import os
 import copy
 import pydoc
+import shutil
 import inspect
 import itertools
 import collections
 
 import colorama
 import terminaltables
-# import pkg_resources
 
 colorama.init()
 
@@ -78,6 +74,7 @@ _MAPPING = {
     "__len__": "len",
     "__int__": "int",
     "__str__": "str",
+    "__bool__": "bool",
     "__float__": "float",
     "__bytes__": "bytes",
     "__round__": "round",
@@ -140,7 +137,7 @@ def _prune_arguments_list(data, header):
             del entry[type_index]
         del header[type_index]
     kind_index = header.index("Kind")
-    if all(entry[kind_index] == "Positional Or Keyword" for entry in data):
+    if all(entry[kind_index].lower() == "Positional Or Keyword".lower() for entry in data):
         for entry in data:
             del entry[kind_index]
         del header[kind_index]
@@ -153,8 +150,12 @@ def explore_signature(thing, show_hidden=False):
     except ValueError as exc:
         print(colored("{!r} does not reveal its signature.".format(
             thing), colorama.Fore.RED))
-        standard_builtins = (__import__, breakpoint, dir, getattr, iter,
-                             max, min, next, print, vars)
+        try:
+            standard_builtins = (__import__, breakpoint, dir, getattr, iter,
+                                max, min, next, print, vars)
+        except NameError:  # 3.5 doesn't know breakpoint
+            standard_builtins = (__import__, dir, getattr, iter,
+                                max, min, next, print, vars)
         if thing in standard_builtins:
             print(colored("Check the documentation at "
                           "https://docs.python.org/3/library/functions.html#{}"
@@ -199,7 +200,7 @@ def explore_signature(thing, show_hidden=False):
         table.title = " Constructor "
     description = _docstring_head(thing)
     if description:
-        print("  Description:\n{}.".format(description))
+        print("  Description:\n{}".format(description))
     if not len(data) == 0:
         print(table.table)
     else:
@@ -237,7 +238,7 @@ def explore_object(thing, show_hidden=False, folding=True):
         print("  Inherits: \n{}".format(parents))
     descr = _docstring_head(thing)
     if descr:
-        print("  Description:\n{}.".format(descr))
+        print("  Description:\n{}".format(descr))
     table = _make_table(data, thing)
     print(table.table)
 
@@ -286,7 +287,6 @@ def _extract_members(thing):
 
 def _fold_list(data, number):
     quotient, remainder = divmod(len(data), number)
-    # return (data[i*quotient+min(i, remainder):(i+1)*quotient+min(i+1, remainder)] for i in range(number))
     folded = (data[i*quotient+min(i, remainder):(i+1)*quotient+min(i+1, remainder)] for i in range(number))
     folded = [["{a:{b}}".format(a=cell, b=max(len(cell_) for cell_ in col)) for cell in col] for col in folded]
     block = [" ".join(items) for items in itertools.zip_longest(*folded, fillvalue="")]
@@ -295,7 +295,7 @@ def _fold_list(data, number):
 
 def _minify_data(source_data, thing):
     """Compress too long lists."""
-    term_size = os.get_terminal_size()
+    term_size = shutil.get_terminal_size((80, 20))
     data = copy.deepcopy(source_data)
     candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
     table = _make_table(data, thing)
@@ -307,8 +307,6 @@ def _minify_data(source_data, thing):
         data_candidate = copy.deepcopy(data)
         data_candidate[candidate_key] = new
         table = _make_table(data_candidate, thing)
-        # print(table.table)
-        # import time; time.sleep(2)
         if len(candidate_list) < term_size.lines or table.table_width > term_size.columns:
             break
         data = data_candidate

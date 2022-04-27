@@ -40,10 +40,13 @@ import datetime
 ex(datetime.datetime.now())
 ```
 ```
+  Inherits:
+datetime -> date -> object
   Description:
 datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
 
-The year, month and day arguments are required.
+The year, month and day arguments are required. tzinfo may be None, or an
+instance of a tzinfo subclass. The remaining arguments may be ints.
 + Class datetime --+-----------------------+------+
 | Methods          | Data                  | Ops  |
 +------------------+-----------------------+------+
@@ -51,12 +54,12 @@ The year, month and day arguments are required.
 | combine          | fold: int             | +    |
 | ctime            | hour: int             | -    |
 | date             | max: datetime         | <    |
-| dst              | microsecond: int      | ==   |
-| fromisocalendar  | min: datetime         | >    |
-| fromisoformat    | minute: int           | hash |
-| fromordinal      | month: int            |      |
-| fromtimestamp    | resolution: timedelta |      |
-| isocalendar      | second: int           |      |
+| dst              | microsecond: int      | <=   |
+| fromisocalendar  | min: datetime         | ==   |
+| fromisoformat    | minute: int           | >    |
+| fromordinal      | month: int            | >=   |
+| fromtimestamp    | resolution: timedelta | hash |
+| isocalendar      | second: int           | str  |
 | isoformat        | tzinfo: NoneType      |      |
 | isoweekday       | year: int             |      |
 | now              |                       |      |
@@ -103,22 +106,22 @@ import pathlib
 ex(pathlib)
 ```
 ```
-+ module: pathlib ------+---------------------+-----------------+-------------------------+
-| Constants | Modules   | Functions           | Classes         | Data                    |
-+-----------+-----------+---------------------+-----------------+-------------------------+
-| EBADF     | fnmatch   | urlquote_from_bytes | Path            | supports_symlinks: bool |
-| EINVAL    | functools |                     | PosixPath       |                         |
-| ELOOP     | io        |                     | PurePath        |                         |
-| ENOENT    | nt        |                     | PurePosixPath   |                         |
-| ENOTDIR   | ntpath    |                     | PureWindowsPath |                         |
-| S_ISBLK   | os        |                     | Sequence        |                         |
-| S_ISCHR   | posixpath |                     | WindowsPath     |                         |
-| S_ISDIR   | re        |                     | attrgetter      |                         |
-| S_ISFIFO  | sys       |                     |                 |                         |
-| S_ISLNK   |           |                     |                 |                         |
-| S_ISREG   |           |                     |                 |                         |
-| S_ISSOCK  |           |                     |                 |                         |
-+-----------+-----------+---------------------+-----------------+-------------------------+
++ module: pathlib ------+---------------------+-----------------+
+| Constants | Modules   | Functions           | Classes         |
++-----------+-----------+---------------------+-----------------+
+| EBADF     | fnmatch   | urlquote_from_bytes | Path            |
+| EINVAL    | functools |                     | PosixPath       |
+| ELOOP     | io        |                     | PurePath        |
+| ENOENT    | ntpath    |                     | PurePosixPath   |
+| ENOTDIR   | os        |                     | PureWindowsPath |
+| S_ISBLK   | posixpath |                     | Sequence        |
+| S_ISCHR   | re        |                     | WindowsPath     |
+| S_ISDIR   | sys       |                     | attrgetter      |
+| S_ISFIFO  | warnings  |                     |                 |
+| S_ISLNK   |           |                     |                 |
+| S_ISREG   |           |                     |                 |
+| S_ISSOCK  |           |                     |                 |
++-----------+-----------+---------------------+-----------------+
 ```
 
 ### Function
@@ -135,10 +138,10 @@ Kinds of arguments.
 + Function a_function -> complex --------------------+
 | Argument | Default | Type  | Kind                  |
 +----------+---------+-------+-----------------------+
-| pos      | ---     | int   | Positional Only       |
-| both     | ---     | float | Positional Or Keyword |
-| untyped  | 4       | Any   | Positional Or Keyword |
-| kw_only  | 'blue'  | str   | Keyword Only          |
+| pos      | ---     | int   | positional-only       |
+| both     | ---     | float | positional or keyword |
+| untyped  | 4       | Any   | positional or keyword |
+| kw_only  | 'blue'  | str   | keyword-only          |
 +----------+---------+-------+-----------------------+
 ```
 
@@ -152,6 +155,8 @@ import requests
 ex(requests.Request)
 ```
 ```
+  Inherits:
+Request -> RequestHooksMixin -> object
   Description:
 A user-created :class:`Request <Request>` object.
 + type: Request --+------+
@@ -159,16 +164,19 @@ A user-created :class:`Request <Request>` object.
 +-----------------+------+
 | deregister_hook | !=   |
 | prepare         | <    |
-| register_hook   | ==   |
+| register_hook   | <=   |
+|                 | ==   |
 |                 | >    |
+|                 | >=   |
 |                 | hash |
+|                 | str  |
 +-----------------+------+
   Description:
-Initialize self.
+A user-created :class:`Request <Request>` object.
+...
 + Constructor -------+
 | Argument | Default |
 +----------+---------+
-| self     | ---     |
 | method   | None    |
 | url      | None    |
 | headers  | None    |
@@ -188,8 +196,11 @@ import fractions
 ex(fractions.Fraction)
 ```
 ```
+  Inherits:
+Fraction -> Rational -> Real -> Complex -> Number -> object
   Description:
 This class implements rational numbers.
+...
 + ABCMeta: Fraction ---------------+-----------------------+--------+
 | Methods      | Functions         | Data                  | Ops    |
 +--------------+-------------------+-----------------------+--------+
@@ -204,25 +215,45 @@ This class implements rational numbers.
 |              |                   |                       | /      |
 |              |                   |                       | //     |
 |              |                   |                       | <      |
+|              |                   |                       | <=     |
 |              |                   |                       | ==     |
 |              |                   |                       | >      |
+|              |                   |                       | >=     |
 |              |                   |                       | abs    |
 |              |                   |                       | divmod |
 |              |                   |                       | float  |
 |              |                   |                       | hash   |
 |              |                   |                       | round  |
+|              |                   |                       | str    |
 +--------------+-------------------+-----------------------+--------+
   Description:
-Initialize self.
-+ Constructor -------+-----------------+
-| Argument | Default | Kind            |
-+----------+---------+-----------------+
-| self     | ---     | Positional Only |
-| args     | ---     | Var Positional  |
-| kwargs   | ---     | Var Keyword     |
-+----------+---------+-----------------+
+This class implements rational numbers.
+...
++ Constructor +---------+-----------------------+
+| Argument    | Default | Kind                  |
++-------------+---------+-----------------------+
+| numerator   | 0       | positional or keyword |
+| denominator | None    | positional or keyword |
+| _normalize  | True    | keyword-only          |
++-------------+---------+-----------------------+
 ```
 
 ## Automatic import
 If you have ipython, you can create a file in `~/.ipython/profile_default/startup/` that imports it,
-it will then be available at the start of ipython. More explanation [here](https://towardsdatascience.com/how-to-automatically-import-your-favorite-libraries-into-ipython-or-a-jupyter-notebook-9c69d89aa343).
+it will then be available at the start of ipython. 
+
+This can look like this:
+```
+from explore import explore as ex
+from explore import explore_signature as exs
+from explore import explore_object as exo
+
+get_ipython().magic("%autocall 1")  # With this, it's callable without parens; e.g. `ex os.path`
+```
+
+More explanation [here](https://towardsdatascience.com/how-to-automatically-import-your-favorite-libraries-into-ipython-or-a-jupyter-notebook-9c69d89aa343).
+
+
+## Limitations
+
+The library won't always work on some builtin objects like `print` or libraries written in c, e.g. `numpy.array`.
