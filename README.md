@@ -1,4 +1,4 @@
-# explore
+# explor
 Python object explorer which shows you what you can do with an object.
 
 It takes the output from `dir()`, checks this and classifies it in a table.
@@ -9,7 +9,7 @@ filter it for the relevant information.
 
 Install the package:
 ```bash
-pip install object-explore
+pip install explor
 ```
 or
 ```bash
@@ -34,7 +34,7 @@ print(dir(datetime.datetime.now()))
 To this
 
 ```python
-from explore import explore as ex
+from explor import explore as ex
 import datetime
 
 ex(datetime.datetime.now())
@@ -90,17 +90,17 @@ To simplify exploration, i'd recommend aliasing it as something short like `ex`.
 You can change the style of the table. The `DoubleTable` is the default, if the text viewer can't handle unicode,
 then the `AsciiTable` might be useful. Some examples to change the Table style:
 ```python
-import explore
-explore.TABLETYPE = explore.terminaltables.AsciiTable
-explore.TABLETYPE = explore.terminaltables.SingleTable
-explore.TABLETYPE = explore.terminaltables.DoubleTable
-explore.TABLETYPE = explore.terminaltables.GithubFlavoredMarkdownTable
+import explor
+explor.TABLETYPE = explor.terminaltables.AsciiTable
+explor.TABLETYPE = explor.terminaltables.SingleTable
+explor.TABLETYPE = explor.terminaltables.DoubleTable
+explor.TABLETYPE = explor.terminaltables.GithubFlavoredMarkdownTable
 ```
 
 ### Module
 
 ```python
-from explore import explore as ex
+from explore import explor as ex
 import pathlib
 
 ex(pathlib)
@@ -127,7 +127,7 @@ ex(pathlib)
 ### Function
 
 ```python
-from explore import explore as ex
+from explor import explore as ex
 def a_function(pos: int, /, both: float, untyped=4, *, kw_only: str = "blue") -> complex:
     """Kinds of arguments."""
 ex(a_function)
@@ -150,7 +150,7 @@ Kinds of arguments.
 On Classes (Not instances), the constructor is also printed.
 
 ```python
-from explore import explore as ex
+from explor import explore as ex
 import requests
 ex(requests.Request)
 ```
@@ -191,7 +191,7 @@ A user-created :class:`Request <Request>` object.
 ```
 
 ```python
-from explore import explore as ex
+from explor import explore as ex
 import fractions
 ex(fractions.Fraction)
 ```
@@ -244,9 +244,9 @@ it will then be available at the start of ipython.
 
 This can look like this:
 ```
-from explore import explore as ex
-from explore import explore_signature as exs
-from explore import explore_object as exo
+from explor import explore as ex
+from explor import explore_signature as exs
+from explor import explore_object as exo
 
 get_ipython().magic("%autocall 1")  # With this, it's callable without parens; e.g. `ex os.path`
 ```

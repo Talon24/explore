@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
-import explore
+import explor
 
 with open("README.md", encoding="utf8") as file:
     description = file.read()
 
 setup(
-    name='object-explore',
-    version=explore.__version__,
+    name='explor',
+    version=explor.__version__,
     description='Powerful human readable version of dir().',
     long_description=description,
     long_description_content_type="text/markdown",
@@ -17,7 +17,7 @@ setup(
     license='MIT',
     packages=find_packages(),
     package_dir={"": "."},
-    py_modules=["explore"],
+    py_modules=["explor"],
     # package_data={'explore': ['mapping.json']},
     # include_package_data=True,
     install_requires=['terminaltables>=3.1.0',
