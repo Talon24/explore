@@ -7,9 +7,11 @@ compact than help().
 
 from __future__ import print_function
 
+# pylint: disable=consider-using-f-string
+
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.12"
+__version__ = "0.1.13"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -201,7 +203,7 @@ def explore_signature(thing, show_hidden=False):
     description = _docstring_head(thing)
     if description:
         print("  Description:\n{}".format(description))
-    if not len(data) == 0:
+    if data:
         print(table.table)
     else:
         print("This Function takes no arguments.")
@@ -286,11 +288,11 @@ def _extract_members(thing):
     return data
 
 
-def _fold_list(data, number):
-    """Convert one column of data to <number> columns, aligned."""
-    rows, remainder = divmod(len(data), number)
+def _fold_list(data, columns):
+    """Convert one column of data to <columns> columns, aligned."""
+    rows, remainder = divmod(len(data), columns)
     chunked = (data[col * rows + min(col, remainder):(col+1) * rows + min(col+1, remainder)]
-               for col in range(number))
+               for col in range(columns))
     folded = [["{item:{length}}".format(item=cell, length=max(len(cell_) for cell_ in col))
                for cell in col]
               for col in chunked]
@@ -306,21 +308,21 @@ def _minify_data(source_data, thing):
     candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
     table = _make_table(data, thing)
     foldings = collections.defaultdict(lambda: 1)
+    buffer = 4  # The table has 4 additional lines
     # In every iteration, fold the currently longest column
     # until the table is small enough or too wide.
-    while table.table_width < term_size.columns and len(candidate_list) > term_size.lines:
+    while table.table_width < term_size.columns and len(candidate_list) + buffer > term_size.lines:
         table = _make_table(data, thing)
         foldings[candidate_key] += 1
         new = _fold_list(source_data[candidate_key], foldings[candidate_key])
         data_candidate = copy.deepcopy(data)
         data_candidate[candidate_key] = new
         table = _make_table(data_candidate, thing)
-        if len(candidate_list) < term_size.lines or table.table_width > term_size.columns:
+        if len(candidate_list) + buffer < term_size.lines or table.table_width > term_size.columns:
             break
         data = data_candidate
         candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
     return data
-
 
 
 def _set_table_title(thing, table):
