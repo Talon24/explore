@@ -9,7 +9,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -147,7 +147,7 @@ def explore_signature(thing, show_hidden=False):
     """Show information about a function and its parameters as a table."""
     try:
         signature = inspect.signature(thing)
-    except ValueError as exc:
+    except ValueError:
         print(colored("{!r} does not reveal its signature.".format(
             thing), colorama.Fore.RED))
         try:
@@ -232,7 +232,6 @@ def explore_object(thing, show_hidden=False, folding=True):
     if folding:
         data = _minify_data(data, thing)
 
-    # list-of-colums to list-of-rows
     parents = _parent_order(thing)
     if parents:
         print("  Inherits: \n{}".format(parents))
@@ -244,6 +243,7 @@ def explore_object(thing, show_hidden=False, folding=True):
 
 
 def _make_table(data, thing):
+    """Convert list-of-colums to list-of-rows."""
     with_header = [
         [key] + value for key, value in data.items() if len(value) > 0]
     rotated = [row for row in itertools.zip_longest(*with_header, fillvalue="")]
@@ -253,6 +253,7 @@ def _make_table(data, thing):
 
 
 def _extract_members(thing):
+    """Classify entries of dir() into categories."""
     items = set(dir(thing))
     data = dict()
     # Extract members, assign them to categories
@@ -286,9 +287,13 @@ def _extract_members(thing):
 
 
 def _fold_list(data, number):
-    quotient, remainder = divmod(len(data), number)
-    folded = (data[i*quotient+min(i, remainder):(i+1)*quotient+min(i+1, remainder)] for i in range(number))
-    folded = [["{a:{b}}".format(a=cell, b=max(len(cell_) for cell_ in col)) for cell in col] for col in folded]
+    """Convert one column of data to <number> columns, aligned."""
+    rows, remainder = divmod(len(data), number)
+    chunked = (data[col * rows + min(col, remainder):(col+1) * rows + min(col+1, remainder)]
+               for col in range(number))
+    folded = [["{item:{length}}".format(item=cell, length=max(len(cell_) for cell_ in col))
+               for cell in col]
+              for col in chunked]
     block = [" ".join(items) for items in itertools.zip_longest(*folded, fillvalue="")]
     return block
 
@@ -297,9 +302,12 @@ def _minify_data(source_data, thing):
     """Compress too long lists."""
     term_size = shutil.get_terminal_size((80, 20))
     data = copy.deepcopy(source_data)
+    # The candidate is the longest column
     candidate_key, candidate_list = max(data.items(), key=lambda x: len(x[1]))
     table = _make_table(data, thing)
     foldings = collections.defaultdict(lambda: 1)
+    # In every iteration, fold the currently longest column
+    # until the table is small enough or too wide.
     while table.table_width < term_size.columns and len(candidate_list) > term_size.lines:
         table = _make_table(data, thing)
         foldings[candidate_key] += 1
@@ -339,13 +347,13 @@ def _docstring_head(thing):
 
 
 def _parent_order(thing):
-    """Generate a string of parents of the given object"""
+    """Generate a string of parents of the given object."""
     try:
         parents = inspect.getmro(thing)
     except AttributeError:
-        return None
+        parents = inspect.getmro(thing.__class__)
     if not parents[1:] == (object,):
-        return " -> ".join(x.__name__ for x in inspect.getmro(thing))
+        return " -> ".join(parent.__name__ for parent in parents)
     return None
 
 
