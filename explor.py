@@ -11,7 +11,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.15"
+__version__ = "0.1.16"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -21,6 +21,7 @@ __all__ = ["explore", "explore_object", "explore_signature"]
 import copy
 import pydoc
 import shutil
+import typing
 import inspect
 import itertools
 import collections
@@ -174,7 +175,15 @@ def explore_signature(thing, show_hidden=False):
         annotation = parameter.annotation
         if annotation is empty:
             annotation = "Any"
+        elif isinstance(annotation, typing._AnnotatedAlias):
+            origin = typing._type_repr(annotation.__origin__)
+            annotation = "[{}] {}".format(
+                origin if show_hidden else origin.split(".")[-1],
+                ", ".join(repr(a) for a in annotation.__metadata__))
         elif isinstance(annotation, str):
+            pass
+        elif hasattr(annotation, "__args__"):
+            # Type has arguments like list[int]
             pass
         else:
             annotation = annotation.__name__
