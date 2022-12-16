@@ -11,7 +11,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.14"
+__version__ = "0.1.15"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -29,7 +29,6 @@ import colorama
 import terminaltables
 
 colorama.init()
-
 TABLETYPE = terminaltables.DoubleTable
 COLORIZE = True
 
@@ -92,7 +91,7 @@ _MAPPING = {
 
 
 def colored(data, color):
-    """Color a string with colorama and reset."""
+    """Color a string with colorama and reset if allowed to do so."""
     if COLORIZE:
         return "{color}{data}{reset}".format(color=color, data=data,
                                              reset=colorama.Style.RESET_ALL)
@@ -192,6 +191,11 @@ def explore_signature(thing, show_hidden=False):
         _prune_arguments_list(data, header)
     # Convert to Table
     table = TABLETYPE([header] + data)
+    _print_signature_result(thing, data, return_type, table)
+
+
+def _print_signature_result(thing, data, return_type, table):
+    """Write the analysis result back."""
     if not inspect.isclass(thing):
         table.title = " Function {} ".format(thing.__name__)
         if isinstance(return_type, str):
@@ -248,7 +252,7 @@ def _make_table(data, thing):
     """Convert list-of-colums to list-of-rows."""
     with_header = [
         [key] + value for key, value in data.items() if len(value) > 0]
-    rotated = [row for row in itertools.zip_longest(*with_header, fillvalue="")]
+    rotated = list(itertools.zip_longest(*with_header, fillvalue=""))
     table = TABLETYPE(rotated)
     _set_table_title(thing, table)
     return table
@@ -257,7 +261,15 @@ def _make_table(data, thing):
 def _extract_members(thing):
     """Classify entries of dir() into categories."""
     items = set(dir(thing))
-    data = dict()
+    # Check if item is reachable
+    for item in sorted(items):
+        try:
+            getattr(thing, item)
+        except Exception as ex:  # pylint: disable=broad-except
+            items.remove(item)
+            print(colored(f"Couldn't access property {item} of {thing!r} because {ex}",
+                          colorama.Fore.LIGHTRED_EX))
+    data = {}
     # Extract members, assign them to categories
     data["Dunders"] = [
         item for item in items if item.startswith("__") and item.endswith("__")]
