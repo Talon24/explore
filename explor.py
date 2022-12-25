@@ -7,11 +7,12 @@ compact than help().
 
 from __future__ import print_function
 
+# pylint: disable=no-else-return
 # pylint: disable=consider-using-f-string
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.16"
+__version__ = "0.1.17"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -145,6 +146,24 @@ def _prune_arguments_list(data, header):
         del header[kind_index]
 
 
+def _simplify_annotation(annotation: str, show_hidden: bool):
+    """Make the annotation more human readable."""
+    if annotation is inspect.Signature.empty:
+        annotation = "Any"
+    elif isinstance(annotation, typing._AnnotatedAlias):  # pylint: disable=protected-access
+        origin = typing._type_repr(annotation.__origin__)  # pylint: disable=protected-access
+        annotation = "[{}] {}".format(
+            origin if show_hidden else origin.split(".")[-1],
+            ", ".join(repr(a) for a in annotation.__metadata__))
+    elif isinstance(annotation, str):
+        pass
+    elif hasattr(annotation, "__args__"):
+        # Type has arguments like list[int]
+        pass
+    else:
+        annotation = annotation.__name__
+    return annotation
+
 def explore_signature(thing, show_hidden=False):
     """Show information about a function and its parameters as a table."""
     try:
@@ -163,7 +182,6 @@ def explore_signature(thing, show_hidden=False):
                           "https://docs.python.org/3/library/functions.html#{}"
                           " .".format(thing.__name__), colorama.Fore.RED))
         return
-    empty = inspect.Signature.empty
     header = ["Argument", "Default", "Type", "Kind"]
     data = []
     return_type = signature.return_annotation
@@ -171,22 +189,8 @@ def explore_signature(thing, show_hidden=False):
         # kind = parameter.kind.name.replace("_", " ").title()
         kind = parameter.kind.description
         default = parameter.default
-        default = repr(default) if default is not empty else "---"
-        annotation = parameter.annotation
-        if annotation is empty:
-            annotation = "Any"
-        elif isinstance(annotation, typing._AnnotatedAlias):
-            origin = typing._type_repr(annotation.__origin__)
-            annotation = "[{}] {}".format(
-                origin if show_hidden else origin.split(".")[-1],
-                ", ".join(repr(a) for a in annotation.__metadata__))
-        elif isinstance(annotation, str):
-            pass
-        elif hasattr(annotation, "__args__"):
-            # Type has arguments like list[int]
-            pass
-        else:
-            annotation = annotation.__name__
+        default = repr(default) if default is not inspect.Signature.empty else "---"
+        annotation = _simplify_annotation(parameter.annotation, show_hidden)
         data.append([name, default, annotation, kind])
     # Coloring
     for row in data:
@@ -267,6 +271,15 @@ def _make_table(data, thing):
     return table
 
 
+def _apply_custom_filters(items, thing):
+    """Ignore some of the fields if they don't provide good information."""
+    # PrefixUnits spam the table, as they show the same base units 20 times
+    items = (item for item in items
+             if thing.__name__ == "astropy.units"
+                and type(getattr(thing, item)).__name__ != "PrefixUnit")
+    return set(items)
+
+
 def _extract_members(thing):
     """Classify entries of dir() into categories."""
     items = set(dir(thing))
@@ -279,6 +292,7 @@ def _extract_members(thing):
             print(colored(f"Couldn't access property {item} of {thing!r} because {ex}",
                           colorama.Fore.LIGHTRED_EX))
     data = {}
+    items = _apply_custom_filters(items, thing)
     # Extract members, assign them to categories
     data["Dunders"] = [
         item for item in items if item.startswith("__") and item.endswith("__")]
