@@ -12,7 +12,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.17"
+__version__ = "0.1.18"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -275,8 +275,9 @@ def _apply_custom_filters(items, thing):
     """Ignore some of the fields if they don't provide good information."""
     # PrefixUnits spam the table, as they show the same base units 20 times
     items = (item for item in items
-             if thing.__name__ == "astropy.units"
-                and type(getattr(thing, item)).__name__ != "PrefixUnit")
+             if not (type(thing).__name__ == "module"
+                     and thing.__name__ == "astropy.units"
+                     and type(getattr(thing, item)).__name__ == "PrefixUnit"))
     return set(items)
 
 
