@@ -12,7 +12,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.18"
+__version__ = "0.1.19"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Developement"
@@ -311,7 +311,9 @@ def _extract_members(thing):
         item for item in items if inspect.ismethod(getattr(thing, item))]
     items.difference_update(data["Methods"])
     data["Functions"] = [
-        item for item in items if inspect.isfunction(getattr(thing, item))]
+        item for item in items
+        if inspect.isfunction(getattr(thing, item))
+        or type(getattr(thing, item)).__name__ == "cython_function_or_method"]
     items.difference_update(data["Functions"])
     data["Classes"] = [
         item for item in items if inspect.isclass(getattr(thing, item))]
