@@ -1,5 +1,9 @@
 # Versions
 
+## 0.1.20
+- Fix issue in getting parent order not working for some classes that mingle with `__mro__`, like pymaybe.
+- Code refactoring, tests
+
 ## 0.1.11
 
 - If terminal is wide enough, make columns multi-columnial to better fit into view

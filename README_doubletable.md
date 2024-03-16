@@ -77,6 +77,11 @@ explor.TABLETYPE = explor.terminaltables.SingleTable
 explor.TABLETYPE = explor.terminaltables.DoubleTable
 explor.TABLETYPE = explor.terminaltables.GithubFlavoredMarkdownTable
 ```
+Also, text output is colored by default, but you can disable it with:
+```python
+import explor
+explor.COLORIZE = False
+```
 
 ### Module
 

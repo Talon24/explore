@@ -12,7 +12,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.19.9"
+__version__ = "0.1.20"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Development"
@@ -175,6 +175,9 @@ class ObjectProperties:
             parents = inspect.getmro(thing)
         except AttributeError:
             parents = inspect.getmro(thing.__class__)
+        if not parents:
+            # If the object interferes with __mro__, try to get the parents from the class instead.
+            parents = inspect.getmro(thing.__class__)
         if not parents[1:] == (object,) and hasattr(parents, "__iter__"):
             return " -> ".join(parent.__name__ for parent in parents)
         return None
@@ -264,7 +267,8 @@ class SignatureProperties:
         """Make the annotation more human-readable."""
         if annotation is inspect.Signature.empty:
             annotation = "Any"
-        elif isinstance(annotation, typing._AnnotatedAlias):  # pylint: disable=protected-access
+        elif typing.get_origin(annotation) is typing.Annotated:  # pylint: disable=protected-access
+            # raise ValueError("Annotated type found!!!!!.")
             origin = typing._type_repr(annotation.__origin__)  # pylint: disable=protected-access
             annotation = "[{}] {}".format(
                 origin if show_hidden else origin.split(".")[-1],
@@ -289,29 +293,6 @@ class SignatureProperties:
                 row[0] = colored(row[0], colorama.Fore.RED)
 
 
-def colored(data: str, color: str) -> str:
-    """Color a string with colorama and reset if allowed to do so."""
-    if COLORIZE:
-        return "{color}{data}{reset}".format(color=color, data=data,
-                                             reset=colorama.Style.RESET_ALL)
-    else:
-        return data
-
-
-def explore_signature(thing: object, show_hidden: bool = False):
-    """Show information about a function and its parameters as a table."""
-    properties = SignatureProperties(thing, show_hidden)
-    if properties.error:
-        print(properties.error)
-        return
-    if not show_hidden:
-        properties.prune_arguments()
-    # Convert to Table
-
-    table = TABLETYPE([properties.header] + properties.data)
-    _print_signature_result(thing, properties.dict, properties.return_type, table)
-
-
 def _print_signature_result(thing, data, return_type, table):
     """Write the analysis result back."""
     if not inspect.isclass(thing):
@@ -331,31 +312,6 @@ def _print_signature_result(thing, data, return_type, table):
         print("This Function takes no arguments.")
 
 
-def explore_object(thing, show_hidden=False, folding=True):
-    """Show dir(thing) as a table to make it more human-readable."""
-    # data = _extract_members(thing)
-    properties = ObjectProperties(thing)
-
-    # color operators
-    properties.color_operators()
-
-    if not show_hidden:
-        properties.secrets = []
-        properties.dunders = []
-    properties.color_types()
-    if folding:
-        minified_data = _minify_data(properties.dict, thing)
-    else:
-        minified_data = properties.dict
-
-    if properties.parents:
-        print("  Inherits: \n{}".format(properties.parents))
-    if properties.description:
-        print("  Description:\n{}".format(properties.description))
-    table = _make_table(minified_data, thing)
-    print(table.table)
-
-
 def _make_table(data, thing):
     """Convert list-of-columns to list-of-rows."""
     with_header = [
@@ -364,16 +320,6 @@ def _make_table(data, thing):
     table = TABLETYPE(rotated)
     _set_table_title(thing, table)
     return table
-
-
-def _apply_custom_filters(items, thing):
-    """Ignore some of the fields if they don't provide good information."""
-    # PrefixUnits spam the table, as they show the same base units 20 times
-    items = (item for item in items
-             if not (type(thing).__name__ == "module"
-                     and thing.__name__ == "astropy.units"
-                     and type(getattr(thing, item)).__name__ == "PrefixUnit"))
-    return set(items)
 
 
 def _fold_list(data, columns):
@@ -420,6 +366,25 @@ def _set_table_title(thing, table):
         table.title = " Class {} ".format(type(thing).__name__)
 
 
+def _apply_custom_filters(items, thing):
+    """Ignore some of the fields if they don't provide good information."""
+    # PrefixUnits spam the table, as they show the same base units 20 times
+    items = (item for item in items
+             if not (type(thing).__name__ == "module"
+                     and thing.__name__ == "astropy.units"
+                     and type(getattr(thing, item)).__name__ == "PrefixUnit"))
+    return set(items)
+
+
+def colored(data: str, color: str) -> str:
+    """Color a string with colorama and reset if allowed to do so."""
+    if COLORIZE:
+        return "{color}{data}{reset}".format(color=color, data=data,
+                                             reset=colorama.Style.RESET_ALL)
+    else:
+        return data
+
+
 def docstring_head(thing):
     """Extract the head of a doc string."""
     doc = pydoc.getdoc(thing)
@@ -434,6 +399,45 @@ def docstring_head(thing):
         else:
             # only head of docstring
             return "\n".join(doc.splitlines()[:10]) + "\n..."
+
+
+def explore_signature(thing: object, show_hidden: bool = False):
+    """Show information about a function and its parameters as a table."""
+    properties = SignatureProperties(thing, show_hidden)
+    if properties.error:
+        print(properties.error)
+        return
+    if not show_hidden:
+        properties.prune_arguments()
+    # Convert to Table
+
+    table = TABLETYPE([properties.header] + properties.data)
+    _print_signature_result(thing, properties.dict, properties.return_type, table)
+
+
+def explore_object(thing, show_hidden=False, folding=True):
+    """Show dir(thing) as a table to make it more human-readable."""
+    # data = _extract_members(thing)
+    properties = ObjectProperties(thing)
+
+    # color operators
+    properties.color_operators()
+
+    if not show_hidden:
+        properties.secrets = []
+        properties.dunders = []
+    properties.color_types()
+    if folding:
+        minified_data = _minify_data(properties.dict, thing)
+    else:
+        minified_data = properties.dict
+
+    if properties.parents:
+        print("  Inherits: \n{}".format(properties.parents))
+    if properties.description:
+        print("  Description:\n{}".format(properties.description))
+    table = _make_table(minified_data, thing)
+    print(table.table)
 
 
 def explore(thing, show_hidden=False, folding=True):
