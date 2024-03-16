@@ -20,7 +20,7 @@
 
 - Ability to change the table style and disable coloring.
 - Better sorting/hiding of some members
-- `explore` as the QOL entrypoitn that automatically determines whether to use function- or object-explorer
+- `explore` as the QOL entrypoint that automatically determines whether to use function- or object-explorer
 
 ## 0.1.0
 - Initial

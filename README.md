@@ -28,7 +28,7 @@ From this
 # Very long line with very specific information, like all the dunder-methods
 import datetime
 print(dir(datetime.datetime.now()))
-['__add__', '__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__ne__', '__new__', '__radd__', '__reduce__', '__reduce_ex__', '__repr__', '__rsub__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', 'astimezone', 'combine', 'ctime', 'date', 'day', 'dst', 'fold', 'fromisocalendar', 'fromisoformat', 'fromordinal', 'fromtimestamp', 'hour', 'isocalendar', 'isoformat', 'isoweekday', 'max', 'microsecond', 'min', 'minute', 'month', 'now', 'replace', 'resolution', 'second', 'strftime', 'strptime', 'time', 'timestamp', 'timetuple', 'timetz', 'today', 'toordinal', 'tzinfo', 'tzname', 'utcfromtimestamp', 'utcnow', 'utcoffset', 'utctimetuple', 'weekday', 'year']
+['__add__', '__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__ne__', '__new__', '__radd__', '__reduce__', '__reduce_ex__', '__repr__', '__rsub__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', 'astimezone', 'combine', 'ctime', 'date', 'day', 'dst', 'fold', 'fromisocalendar', 'fromisoformat', 'fromordinal', 'fromtimestamp', 'hour', 'isocalendar', 'isoformat', 'isoweekday', 'max', 'microsecond', 'min', 'minute', 'month', 'now', 'replace', 'resolution', 'second', 'strftime', 'strptime', 'time', 'timestamp', 'timetuple', 'timetz', 'today', 'toordinal', 'tzinfo', 'tzname', 'utcfromtimestamp', 'utcnow', 'utcoffset', 'utctimetuple', 'weekday', 'year']
 ```
 
 To this
@@ -40,51 +40,32 @@ import datetime
 ex(datetime.datetime.now())
 ```
 ```
-  Inherits:
+  Inherits: 
 datetime -> date -> object
-  Description:
-datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
-
-The year, month and day arguments are required. tzinfo may be None, or an
-instance of a tzinfo subclass. The remaining arguments may be ints.
-+ Class datetime --+-----------------------+------+
-| Methods          | Data                  | Ops  |
-+------------------+-----------------------+------+
-| astimezone       | day: int              | !=   |
-| combine          | fold: int             | +    |
-| ctime            | hour: int             | -    |
-| date             | max: datetime         | <    |
-| dst              | microsecond: int      | <=   |
-| fromisocalendar  | min: datetime         | ==   |
-| fromisoformat    | minute: int           | >    |
-| fromordinal      | month: int            | >=   |
-| fromtimestamp    | resolution: timedelta | hash |
-| isocalendar      | second: int           | str  |
-| isoformat        | tzinfo: NoneType      |      |
-| isoweekday       | year: int             |      |
-| now              |                       |      |
-| replace          |                       |      |
-| strftime         |                       |      |
-| strptime         |                       |      |
-| time             |                       |      |
-| timestamp        |                       |      |
-| timetuple        |                       |      |
-| timetz           |                       |      |
-| today            |                       |      |
-| toordinal        |                       |      |
-| tzname           |                       |      |
-| utcfromtimestamp |                       |      |
-| utcnow           |                       |      |
-| utcoffset        |                       |      |
-| utctimetuple     |                       |      |
-| weekday          |                       |      |
-+------------------+-----------------------+------+
+┌ Class datetime ──────────────────┬───────────────────────┬──────┐
+│ Methods                          │ Data                  │ Ops  │
+├──────────────────────────────────┼───────────────────────┼──────┤
+│ astimezone      strftime         │ day: int              │ !=   │
+│ combine         strptime         │ fold: int             │ +    │
+│ ctime           time             │ hour: int             │ -    │
+│ date            timestamp        │ max: datetime         │ <    │
+│ dst             timetuple        │ microsecond: int      │ <=   │
+│ fromisocalendar timetz           │ min: datetime         │ ==   │
+│ fromisoformat   today            │ minute: int           │ >    │
+│ fromordinal     toordinal        │ month: int            │ >=   │
+│ fromtimestamp   tzname           │ resolution: timedelta │ hash │
+│ isocalendar     utcfromtimestamp │ second: int           │ str  │
+│ isoformat       utcnow           │ tzinfo: NoneType      │      │
+│ isoweekday      utcoffset        │ year: int             │      │
+│ now             utctimetuple     │                       │      │
+│ replace         weekday          │                       │      │
+└──────────────────────────────────┴───────────────────────┴──────┘
 ```
 
 ## Usage
 
 The module's name is `explore` and it provides a function called `explore()`.
-To simplify exploration, i'd recommend aliasing it as something short like `ex`. 
+To simplify exploration, I'd recommend aliasing it as something short like `ex`.
 ### Settings
 
 You can change the style of the table. The `DoubleTable` is the default, if the text viewer can't handle unicode,
@@ -100,28 +81,33 @@ explor.TABLETYPE = explor.terminaltables.GithubFlavoredMarkdownTable
 ### Module
 
 ```python
-from explore import explor as ex
+from explor import explore as ex
 import pathlib
 
 ex(pathlib)
 ```
 ```
-+ module: pathlib ------+---------------------+-----------------+
-| Constants | Modules   | Functions           | Classes         |
-+-----------+-----------+---------------------+-----------------+
-| EBADF     | fnmatch   | urlquote_from_bytes | Path            |
-| EINVAL    | functools |                     | PosixPath       |
-| ELOOP     | io        |                     | PurePath        |
-| ENOENT    | ntpath    |                     | PurePosixPath   |
-| ENOTDIR   | os        |                     | PureWindowsPath |
-| S_ISBLK   | posixpath |                     | Sequence        |
-| S_ISCHR   | re        |                     | WindowsPath     |
-| S_ISDIR   | sys       |                     | attrgetter      |
-| S_ISFIFO  | warnings  |                     |                 |
-| S_ISLNK   |           |                     |                 |
-| S_ISREG   |           |                     |                 |
-| S_ISSOCK  |           |                     |                 |
-+-----------+-----------+---------------------+-----------------+
+  Description:
+Object-oriented filesystem paths.
+
+This module provides classes to represent abstract paths and concrete
+paths with operations that have semantics appropriate for different
+operating systems.
+┌ module: pathlib ──────┬─────────────────────┬─────────────────┐
+│ Constants │ Modules   │ Functions           │ Classes         │
+├───────────┼───────────┼─────────────────────┼─────────────────┤
+│ EBADF     │ fnmatch   │ urlquote_from_bytes │ Path            │
+│ ELOOP     │ functools │                     │ PosixPath       │
+│ ENOENT    │ io        │                     │ PurePath        │
+│ ENOTDIR   │ ntpath    │                     │ PurePosixPath   │
+│ S_ISBLK   │ os        │                     │ PureWindowsPath │
+│ S_ISCHR   │ posixpath │                     │ Sequence        │
+│ S_ISDIR   │ re        │                     │ WindowsPath     │
+│ S_ISFIFO  │ sys       │                     │                 │
+│ S_ISLNK   │ warnings  │                     │                 │
+│ S_ISREG   │           │                     │                 │
+│ S_ISSOCK  │           │                     │                 │
+└───────────┴───────────┴─────────────────────┴─────────────────┘
 ```
 
 ### Function
@@ -135,14 +121,14 @@ ex(a_function)
 ```
   Description:
 Kinds of arguments.
-+ Function a_function -> complex --------------------+
-| Argument | Default | Type  | Kind                  |
-+----------+---------+-------+-----------------------+
-| pos      | ---     | int   | positional-only       |
-| both     | ---     | float | positional or keyword |
-| untyped  | 4       | Any   | positional or keyword |
-| kw_only  | 'blue'  | str   | keyword-only          |
-+----------+---------+-------+-----------------------+
+┌ Function a_function -> complex ────────────────────┐
+│ Argument │ Default │ Type  │ Kind                  │
+├──────────┼─────────┼───────┼───────────────────────┤
+│ pos      │ ---     │ int   │ positional-only       │
+│ both     │ ---     │ float │ positional or keyword │
+│ untyped  │ 4       │ Any   │ positional or keyword │
+│ kw_only  │ 'blue'  │ str   │ keyword-only          │
+└──────────┴─────────┴───────┴───────────────────────┘
 ```
 
 ### Class
@@ -155,39 +141,40 @@ import requests
 ex(requests.Request)
 ```
 ```
-  Inherits:
+  Inherits: 
 Request -> RequestHooksMixin -> object
   Description:
 A user-created :class:`Request <Request>` object.
-+ type: Request --+------+
-| Functions       | Ops  |
-+-----------------+------+
-| deregister_hook | !=   |
-| prepare         | <    |
-| register_hook   | <=   |
-|                 | ==   |
-|                 | >    |
-|                 | >=   |
-|                 | hash |
-|                 | str  |
-+-----------------+------+
+...
+┌ type: Request ──┬──────┐
+│ Functions       │ Ops  │
+├─────────────────┼──────┤
+│ deregister_hook │ !=   │
+│ prepare         │ <    │
+│ register_hook   │ <=   │
+│                 │ ==   │
+│                 │ >    │
+│                 │ >=   │
+│                 │ hash │
+│                 │ str  │
+└─────────────────┴──────┘
   Description:
 A user-created :class:`Request <Request>` object.
 ...
-+ Constructor -------+
-| Argument | Default |
-+----------+---------+
-| method   | None    |
-| url      | None    |
-| headers  | None    |
-| files    | None    |
-| data     | None    |
-| params   | None    |
-| auth     | None    |
-| cookies  | None    |
-| hooks    | None    |
-| json     | None    |
-+----------+---------+
+┌ Constructor ───────┐
+│ Argument │ Default │
+├──────────┼─────────┤
+│ method   │ None    │
+│ url      │ None    │
+│ headers  │ None    │
+│ files    │ None    │
+│ data     │ None    │
+│ params   │ None    │
+│ auth     │ None    │
+│ cookies  │ None    │
+│ hooks    │ None    │
+│ json     │ None    │
+└──────────┴─────────┘
 ```
 
 ```python
@@ -196,51 +183,41 @@ import fractions
 ex(fractions.Fraction)
 ```
 ```
-  Inherits:
+  Inherits: 
 Fraction -> Rational -> Real -> Complex -> Number -> object
   Description:
 This class implements rational numbers.
 ...
-+ ABCMeta: Fraction ---------------+-----------------------+--------+
-| Methods      | Functions         | Data                  | Ops    |
-+--------------+-------------------+-----------------------+--------+
-| from_decimal | as_integer_ratio  | denominator: property | !=     |
-| from_float   | conjugate         | imag: property        | %      |
-|              | limit_denominator | numerator: property   | *      |
-|              |                   | real: property        | **     |
-|              |                   |                       | +      |
-|              |                   |                       | +()    |
-|              |                   |                       | -      |
-|              |                   |                       | -()    |
-|              |                   |                       | /      |
-|              |                   |                       | //     |
-|              |                   |                       | <      |
-|              |                   |                       | <=     |
-|              |                   |                       | ==     |
-|              |                   |                       | >      |
-|              |                   |                       | >=     |
-|              |                   |                       | abs    |
-|              |                   |                       | divmod |
-|              |                   |                       | float  |
-|              |                   |                       | hash   |
-|              |                   |                       | round  |
-|              |                   |                       | str    |
-+--------------+-------------------+-----------------------+--------+
+┌ ABCMeta: Fraction ───────────────┬───────────────────────┬────────────┐
+│ Methods      │ Functions         │ Data                  │ Ops        │
+├──────────────┼───────────────────┼───────────────────────┼────────────┤
+│ from_decimal │ as_integer_ratio  │ denominator: property │ !=  ==     │
+│ from_float   │ conjugate         │ imag: property        │ %   >      │
+│              │ is_integer        │ numerator: property   │ *   >=     │
+│              │ limit_denominator │ real: property        │ **  abs    │
+│              │                   │                       │ +   bool   │
+│              │                   │                       │ +() divmod │
+│              │                   │                       │ -   float  │
+│              │                   │                       │ -() hash   │
+│              │                   │                       │ /   int    │
+│              │                   │                       │ //  round  │
+│              │                   │                       │ <   str    │
+│              │                   │                       │ <=         │
+└──────────────┴───────────────────┴───────────────────────┴────────────┘
   Description:
 This class implements rational numbers.
 ...
-+ Constructor +---------+-----------------------+
-| Argument    | Default | Kind                  |
-+-------------+---------+-----------------------+
-| numerator   | 0       | positional or keyword |
-| denominator | None    | positional or keyword |
-| _normalize  | True    | keyword-only          |
-+-------------+---------+-----------------------+
+┌ Constructor ┬─────────┐
+│ Argument    │ Default │
+├─────────────┼─────────┤
+│ numerator   │ 0       │
+│ denominator │ None    │
+└─────────────┴─────────┘
 ```
 
 ## Automatic import
 If you have ipython, you can create a file in `~/.ipython/profile_default/startup/` that imports it,
-it will then be available at the start of ipython. 
+it will then be available at the start of ipython.
 
 This can look like this:
 ```

@@ -8,7 +8,7 @@ with open("README.md", encoding="utf8") as file:
 setup(
     name='explor',
     version=explor.__version__,
-    description='Powerful human readable version of dir().',
+    description='Powerful human-readable version of dir().',
     long_description=description,
     long_description_content_type="text/markdown",
     url='https://github.com/Talon24/explore',
@@ -39,4 +39,3 @@ setup(
         'Programming Language :: Python :: 3.10',
     ],
 )
-

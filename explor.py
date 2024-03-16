@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Human readable object exploration module.
+"""Human-readable object exploration module.
 
 It is designed to be more verbose than the dir()-function, while being more
 compact than help().
@@ -12,10 +12,10 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.19"
+__version__ = "0.1.19.9"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
-__status__ = "Developement"
+__status__ = "Development"
 
 __all__ = ["explore", "explore_object", "explore_signature"]
 
@@ -92,7 +92,204 @@ _MAPPING = {
 }
 
 
-def colored(data, color):
+class ObjectProperties:
+    """Class to store the properties of an object."""
+
+    def __init__(self, thing):
+        items = set(dir(thing))
+
+        # Check if item is reachable
+        for item in sorted(items):
+            try:
+                getattr(thing, item)
+            except Exception as ex:  # pylint: disable=broad-except
+                items.remove(item)
+                print(colored("Couldn't access property {} of {!r} because {}".format(item, thing, ex),
+                              colorama.Fore.LIGHTRED_EX))
+        items = _apply_custom_filters(items, thing)
+
+        self.thing = thing
+        self.dunders = sorted([item for item in items if item.startswith("__") and item.endswith("__")])
+        items.difference_update(self.dunders)
+        self.secrets = sorted([item for item in items if item.startswith("_")])
+        items.difference_update(self.secrets)
+        self.constants = sorted([item for item in items if item.isupper()])
+        items.difference_update(self.constants)
+        self.modules = sorted([item for item in items if inspect.ismodule(getattr(thing, item))])
+        items.difference_update(self.modules)
+        self.methods = sorted([item for item in items if inspect.ismethod(getattr(thing, item))])
+        items.difference_update(self.methods)
+        self.functions = sorted([
+            item for item in items
+            if (inspect.isfunction(getattr(thing, item))
+                or type(getattr(thing, item)).__name__ == "cython_function_or_method")])
+        items.difference_update(self.functions)
+        self.classes = sorted([item for item in items if inspect.isclass(getattr(thing, item))])
+        items.difference_update(self.classes)
+        self.data = list(items)
+        self.prune_data()
+        self.ops = sorted(self._map_dunders(thing, self.dunders))
+        self.parents = self.parent_order(thing)
+        self.description = docstring_head(thing)
+
+    def prune_data(self):
+        """Move items out of the Data row."""
+        remappable = ("method_descriptor", "builtin_function_or_method")
+        uninteresting = ("PytestTester", "_Feature")
+        for item in self.data[:]:
+            typename = type(getattr(self.thing, item)).__name__
+            if typename in remappable or typename in uninteresting:
+                if typename in remappable:
+                    if inspect.ismodule(self.thing):
+                        self.functions.append(item)
+                    else:
+                        self.methods.append(item)
+                self.data.remove(item)
+        self.data.sort()
+        self.functions.sort()
+        self.methods.sort()
+
+    def color_operators(self):
+        self.ops = [colored(text, colorama.Fore.LIGHTGREEN_EX) for text in self.ops]
+
+    @staticmethod
+    def _map_dunders(thing, items):
+        """Match dunder methods to the operator/construct they are related to."""
+        ops = []
+        for item in items[:]:
+            if item in _MAPPING:
+                text = _MAPPING[item]
+                items.remove(item)
+                ops.append(text)
+        # Special case: Hash. Classes can have hashes, but not their instances,
+        # or hash might be None.
+        # list has a __hash__ - attr (None), even though it is not hashable
+        if "__hash__" in items and thing.__hash__:
+            ops.append("hash")
+        return ops
+
+    @staticmethod
+    def parent_order(thing):
+        """Generate a string of parents of the given object."""
+        try:
+            parents = inspect.getmro(thing)
+        except AttributeError:
+            parents = inspect.getmro(thing.__class__)
+        if not parents[1:] == (object,) and hasattr(parents, "__iter__"):
+            return " -> ".join(parent.__name__ for parent in parents)
+        return None
+
+    @property
+    def dict(self):
+        """Return the propertiRes as a dictionary."""
+        return {
+            "Dunders": self.dunders,
+            "Secrets": self.secrets,
+            "Constants": self.constants,
+            "Modules": self.modules,
+            "Methods": self.methods,
+            "Functions": self.functions,
+            "Classes": self.classes,
+            "Data": self.data,
+            "Ops": self.ops,
+        }
+
+    def color_types(self):
+        """Color the types for better readability."""
+        self.data = [
+            "{}: {}".format(item, colored(type(getattr(self.thing, item)).__name__, colorama.Fore.LIGHTCYAN_EX))
+            for item in self.data]
+
+
+class SignatureProperties:
+    """Class to store the properties of a function signature."""
+
+    def __init__(self, thing, show_hidden: bool):
+        self.thing = thing
+        self.error = None
+        try:
+            self.signature = inspect.signature(thing)
+        except ValueError:
+            self.error = colored("{!r} does not reveal its signature.".format(thing), colorama.Fore.RED)
+            try:
+                standard_builtins = (__import__, breakpoint, dir, getattr, iter,
+                                     max, min, next, print, vars)
+            except NameError:  # 3.5 doesn't know breakpoint
+                standard_builtins = (__import__, dir, getattr, iter,
+                                     max, min, next, print, vars)
+            if thing in standard_builtins:
+                self.error += "\n" + colored("Check the documentation at "
+                                             "https://docs.python.org/3/library/functions.html#{}"
+                                             " .".format(thing.__name__), colorama.Fore.RED)
+            return
+        self.parameters = self.signature.parameters
+        self.return_type = self.signature.return_annotation
+        self.header = ["Argument", "Default", "Type", "Kind"]
+        self.data = []
+        self._extract_arguments(show_hidden)
+
+    def _extract_arguments(self, show_hidden):
+        """Extract the arguments from the signature."""
+        for name, parameter in self.parameters.items():
+            kind = parameter.kind.description
+            default = parameter.default
+            default = repr(default) if default is not inspect.Signature.empty else "---"
+            annotation = self._simplify_annotation(parameter.annotation, show_hidden)
+            self.data.append([name, default, annotation, kind])
+
+    def prune_arguments(self):
+        """Remove default information from list of arguments if all are unset."""
+        type_index = self.header.index("Type")
+        if all(entry[type_index] == "Any" for entry in self.data):
+            for entry in self.data:
+                del entry[type_index]
+            del self.header[type_index]
+        kind_index = self.header.index("Kind")
+        if all(entry[kind_index].lower() == "Positional Or Keyword".lower() for entry in self.data):
+            for entry in self.data:
+                del entry[kind_index]
+            del self.header[kind_index]
+
+    @property
+    def dict(self):
+        """Return the properties as a dictionary."""
+        return {
+            "Header": self.header,
+            "Data": self.data,
+            "ReturnType": self.return_type,
+        }
+
+    @staticmethod
+    def _simplify_annotation(annotation, show_hidden):
+        """Make the annotation more human-readable."""
+        if annotation is inspect.Signature.empty:
+            annotation = "Any"
+        elif isinstance(annotation, typing._AnnotatedAlias):  # pylint: disable=protected-access
+            origin = typing._type_repr(annotation.__origin__)  # pylint: disable=protected-access
+            annotation = "[{}] {}".format(
+                origin if show_hidden else origin.split(".")[-1],
+                ", ".join(repr(a) for a in annotation.__metadata__))
+        elif isinstance(annotation, str):
+            pass
+        elif hasattr(annotation, "__args__"):
+            # Type has arguments like list[int]
+            pass
+        else:
+            annotation = annotation.__name__
+        return annotation
+
+    def colorize_data(self):
+        """Color the data for better readability."""
+        for row in self.data:
+            if row[0] in ("self", "cls"):
+                row[0] = colored(row[0], colorama.Fore.YELLOW)
+            elif row[1] == "---" and not row[3].startswith("var"):
+                # Required argument, as no default is set.
+                # Variadic is allowed to be empty, though.
+                row[0] = colored(row[0], colorama.Fore.RED)
+
+
+def colored(data: str, color: str) -> str:
     """Color a string with colorama and reset if allowed to do so."""
     if COLORIZE:
         return "{color}{data}{reset}".format(color=color, data=data,
@@ -101,110 +298,18 @@ def colored(data, color):
         return data
 
 
-def _map_dunders(thing, items):
-    """Match dunder methods to the operator/construct they are related to."""
-    ops = []
-    for item in items[:]:
-        if item in _MAPPING:
-            text = _MAPPING[item]
-            items.remove(item)
-            ops.append(text)
-    # Special case: Hash. Classes can have hashes, but not their instances,
-    # or hash might be None.
-    # list has a __hash__ - attr (None), even though it is not hashable
-    if "__hash__" in items and thing.__hash__:
-        ops.append("hash")
-    return ops
-
-
-def _prune_data(thing, data):
-    """Move items out of the Data row."""
-    remappable = ("method_descriptor", "builtin_function_or_method")
-    uninteresting = ("PytestTester", "_Feature")
-    for item in data["Data"][:]:
-        typename = type(getattr(thing, item)).__name__
-        if typename in remappable or typename in uninteresting:
-            if typename in remappable:
-                if inspect.ismodule(thing):
-                    data["Functions"].append(item)
-                else:
-                    data["Methods"].append(item)
-            data["Data"].remove(item)
-
-
-def _prune_arguments_list(data, header):
-    """Remove default information from list of arguments if all are unset."""
-    type_index = header.index("Type")
-    if all(entry[type_index] == "Any" for entry in data):
-        for entry in data:
-            del entry[type_index]
-        del header[type_index]
-    kind_index = header.index("Kind")
-    if all(entry[kind_index].lower() == "Positional Or Keyword".lower() for entry in data):
-        for entry in data:
-            del entry[kind_index]
-        del header[kind_index]
-
-
-def _simplify_annotation(annotation: str, show_hidden: bool):
-    """Make the annotation more human readable."""
-    if annotation is inspect.Signature.empty:
-        annotation = "Any"
-    elif isinstance(annotation, typing._AnnotatedAlias):  # pylint: disable=protected-access
-        origin = typing._type_repr(annotation.__origin__)  # pylint: disable=protected-access
-        annotation = "[{}] {}".format(
-            origin if show_hidden else origin.split(".")[-1],
-            ", ".join(repr(a) for a in annotation.__metadata__))
-    elif isinstance(annotation, str):
-        pass
-    elif hasattr(annotation, "__args__"):
-        # Type has arguments like list[int]
-        pass
-    else:
-        annotation = annotation.__name__
-    return annotation
-
-def explore_signature(thing, show_hidden=False):
+def explore_signature(thing: object, show_hidden: bool = False):
     """Show information about a function and its parameters as a table."""
-    try:
-        signature = inspect.signature(thing)
-    except ValueError:
-        print(colored("{!r} does not reveal its signature.".format(
-            thing), colorama.Fore.RED))
-        try:
-            standard_builtins = (__import__, breakpoint, dir, getattr, iter,
-                                max, min, next, print, vars)
-        except NameError:  # 3.5 doesn't know breakpoint
-            standard_builtins = (__import__, dir, getattr, iter,
-                                max, min, next, print, vars)
-        if thing in standard_builtins:
-            print(colored("Check the documentation at "
-                          "https://docs.python.org/3/library/functions.html#{}"
-                          " .".format(thing.__name__), colorama.Fore.RED))
+    properties = SignatureProperties(thing, show_hidden)
+    if properties.error:
+        print(properties.error)
         return
-    header = ["Argument", "Default", "Type", "Kind"]
-    data = []
-    return_type = signature.return_annotation
-    for name, parameter in signature.parameters.items():
-        # kind = parameter.kind.name.replace("_", " ").title()
-        kind = parameter.kind.description
-        default = parameter.default
-        default = repr(default) if default is not inspect.Signature.empty else "---"
-        annotation = _simplify_annotation(parameter.annotation, show_hidden)
-        data.append([name, default, annotation, kind])
-    # Coloring
-    for row in data:
-        if row[0] in ("self", "cls"):
-            row[0] = colored(row[0], colorama.Fore.YELLOW)
-        elif row[1] == "---" and not row[3].startswith("var"):
-            # Required argument, as no default is set.
-            # Variadic is allowed to be empty, though.
-            row[0] = colored(row[0], colorama.Fore.RED)
     if not show_hidden:
-        _prune_arguments_list(data, header)
+        properties.prune_arguments()
     # Convert to Table
-    table = TABLETYPE([header] + data)
-    _print_signature_result(thing, data, return_type, table)
+
+    table = TABLETYPE([properties.header] + properties.data)
+    _print_signature_result(thing, properties.dict, properties.return_type, table)
 
 
 def _print_signature_result(thing, data, return_type, table):
@@ -217,7 +322,7 @@ def _print_signature_result(thing, data, return_type, table):
             table.title += "-> {} ".format(return_type.__name__)
     else:
         table.title = " Constructor "
-    description = _docstring_head(thing)
+    description = docstring_head(thing)
     if description:
         print("  Description:\n{}".format(description))
     if data:
@@ -227,42 +332,32 @@ def _print_signature_result(thing, data, return_type, table):
 
 
 def explore_object(thing, show_hidden=False, folding=True):
-    """Show dir(thing) as a table to make it more human readable."""
-    data = _extract_members(thing)
+    """Show dir(thing) as a table to make it more human-readable."""
+    # data = _extract_members(thing)
+    properties = ObjectProperties(thing)
 
     # color operators
-    data["Ops"] = [colored(text, colorama.Fore.LIGHTGREEN_EX)
-                   for text in data["Ops"]]
+    properties.color_operators()
 
     if not show_hidden:
-        hidden_names = ["Secrets", "Dunders"]
-        for name in hidden_names:
-            try:
-                del data[name]
-            except KeyError:
-                pass
-    # color types
-    newdata = []
-    for item in data["Data"]:
-        type_ = colored(type(getattr(thing, item)).__name__,
-                        colorama.Fore.LIGHTCYAN_EX)
-        newdata.append("{}: {}".format(item, type_))
-    data["Data"] = newdata
+        properties.secrets = []
+        properties.dunders = []
+    properties.color_types()
     if folding:
-        data = _minify_data(data, thing)
+        minified_data = _minify_data(properties.dict, thing)
+    else:
+        minified_data = properties.dict
 
-    parents = _parent_order(thing)
-    if parents:
-        print("  Inherits: \n{}".format(parents))
-    descr = _docstring_head(thing)
-    if descr:
-        print("  Description:\n{}".format(descr))
-    table = _make_table(data, thing)
+    if properties.parents:
+        print("  Inherits: \n{}".format(properties.parents))
+    if properties.description:
+        print("  Description:\n{}".format(properties.description))
+    table = _make_table(minified_data, thing)
     print(table.table)
 
 
 def _make_table(data, thing):
-    """Convert list-of-colums to list-of-rows."""
+    """Convert list-of-columns to list-of-rows."""
     with_header = [
         [key] + value for key, value in data.items() if len(value) > 0]
     rotated = list(itertools.zip_longest(*with_header, fillvalue=""))
@@ -281,55 +376,10 @@ def _apply_custom_filters(items, thing):
     return set(items)
 
 
-def _extract_members(thing):
-    """Classify entries of dir() into categories."""
-    items = set(dir(thing))
-    # Check if item is reachable
-    for item in sorted(items):
-        try:
-            getattr(thing, item)
-        except Exception as ex:  # pylint: disable=broad-except
-            items.remove(item)
-            print(colored(f"Couldn't access property {item} of {thing!r} because {ex}",
-                          colorama.Fore.LIGHTRED_EX))
-    data = {}
-    items = _apply_custom_filters(items, thing)
-    # Extract members, assign them to categories
-    data["Dunders"] = [
-        item for item in items if item.startswith("__") and item.endswith("__")]
-    items.difference_update(data["Dunders"])
-    data["Secrets"] = [
-        item for item in items if item.startswith("_")]
-    items.difference_update(data["Secrets"])
-    data["Constants"] = [
-        item for item in items if item.isupper()]
-    items.difference_update(data["Constants"])
-    data["Modules"] = [
-        item for item in items if inspect.ismodule(getattr(thing, item))]
-    items.difference_update(data["Modules"])
-    data["Methods"] = [
-        item for item in items if inspect.ismethod(getattr(thing, item))]
-    items.difference_update(data["Methods"])
-    data["Functions"] = [
-        item for item in items
-        if inspect.isfunction(getattr(thing, item))
-        or type(getattr(thing, item)).__name__ == "cython_function_or_method"]
-    items.difference_update(data["Functions"])
-    data["Classes"] = [
-        item for item in items if inspect.isclass(getattr(thing, item))]
-    items.difference_update(data["Classes"])
-    data["Data"] = list(items)
-    data["Ops"] = _map_dunders(thing, data["Dunders"])
-    _prune_data(thing, data)
-    for value in data.values():
-        value.sort()
-    return data
-
-
 def _fold_list(data, columns):
     """Convert one column of data to <columns> columns, aligned."""
     rows, remainder = divmod(len(data), columns)
-    chunked = (data[col * rows + min(col, remainder):(col+1) * rows + min(col+1, remainder)]
+    chunked = (data[col * rows + min(col, remainder):(col + 1) * rows + min(col + 1, remainder)]
                for col in range(columns))
     folded = [["{item:{length}}".format(item=cell, length=max(len(cell_) for cell_ in col))
                for cell in col]
@@ -350,7 +400,6 @@ def _minify_data(source_data, thing):
     # In every iteration, fold the currently longest column
     # until the table is small enough or too wide.
     while table.table_width < term_size.columns and len(candidate_list) + buffer > term_size.lines:
-        table = _make_table(data, thing)
         foldings[candidate_key] += 1
         new = _fold_list(source_data[candidate_key], foldings[candidate_key])
         data_candidate = copy.deepcopy(data)
@@ -364,13 +413,14 @@ def _minify_data(source_data, thing):
 
 
 def _set_table_title(thing, table):
+    """Infer the title of the table from the object type."""
     try:
         table.title = " {}: {} ".format(type(thing).__name__, thing.__name__)
     except AttributeError:
         table.title = " Class {} ".format(type(thing).__name__)
 
 
-def _docstring_head(thing):
+def docstring_head(thing):
     """Extract the head of a doc string."""
     doc = pydoc.getdoc(thing)
     if len(doc.splitlines()) < 10:
@@ -384,17 +434,6 @@ def _docstring_head(thing):
         else:
             # only head of docstring
             return "\n".join(doc.splitlines()[:10]) + "\n..."
-
-
-def _parent_order(thing):
-    """Generate a string of parents of the given object."""
-    try:
-        parents = inspect.getmro(thing)
-    except AttributeError:
-        parents = inspect.getmro(thing.__class__)
-    if not parents[1:] == (object,):
-        return " -> ".join(parent.__name__ for parent in parents)
-    return None
 
 
 def explore(thing, show_hidden=False, folding=True):
