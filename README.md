@@ -42,24 +42,24 @@ ex(datetime.datetime.now())
 ```
   Inherits: 
 datetime -> date -> object
-┌ Class datetime ──────────────────┬───────────────────────┬──────┐
-│ Methods                          │ Data                  │ Ops  │
-├──────────────────────────────────┼───────────────────────┼──────┤
-│ astimezone      strftime         │ day: int              │ !=   │
-│ combine         strptime         │ fold: int             │ +    │
-│ ctime           time             │ hour: int             │ -    │
-│ date            timestamp        │ max: datetime         │ <    │
-│ dst             timetuple        │ microsecond: int      │ <=   │
-│ fromisocalendar timetz           │ min: datetime         │ ==   │
-│ fromisoformat   today            │ minute: int           │ >    │
-│ fromordinal     toordinal        │ month: int            │ >=   │
-│ fromtimestamp   tzname           │ resolution: timedelta │ hash │
-│ isocalendar     utcfromtimestamp │ second: int           │ str  │
-│ isoformat       utcnow           │ tzinfo: NoneType      │      │
-│ isoweekday      utcoffset        │ year: int             │      │
-│ now             utctimetuple     │                       │      │
-│ replace         weekday          │                       │      │
-└──────────────────────────────────┴───────────────────────┴──────┘
+╔ Class datetime ══════════════════╦═══════════════════════╦══════╗
+║ Methods                          ║ Data                  ║ Ops  ║
+╠══════════════════════════════════╬═══════════════════════╬══════╣
+║ astimezone      strftime         ║ day: int              ║ !=   ║
+║ combine         strptime         ║ fold: int             ║ +    ║
+║ ctime           time             ║ hour: int             ║ -    ║
+║ date            timestamp        ║ max: datetime         ║ <    ║
+║ dst             timetuple        ║ microsecond: int      ║ <=   ║
+║ fromisocalendar timetz           ║ min: datetime         ║ ==   ║
+║ fromisoformat   today            ║ minute: int           ║ >    ║
+║ fromordinal     toordinal        ║ month: int            ║ >=   ║
+║ fromtimestamp   tzname           ║ resolution: timedelta ║ hash ║
+║ isocalendar     utcfromtimestamp ║ second: int           ║ str  ║
+║ isoformat       utcnow           ║ tzinfo: NoneType      ║      ║
+║ isoweekday      utcoffset        ║ year: int             ║      ║
+║ now             utctimetuple     ║                       ║      ║
+║ replace         weekday          ║                       ║      ║
+╚══════════════════════════════════╩═══════════════════════╩══════╝
 ```
 
 ## Usage
@@ -98,21 +98,21 @@ Object-oriented filesystem paths.
 This module provides classes to represent abstract paths and concrete
 paths with operations that have semantics appropriate for different
 operating systems.
-┌ module: pathlib ──────┬─────────────────────┬─────────────────┐
-│ Constants │ Modules   │ Functions           │ Classes         │
-├───────────┼───────────┼─────────────────────┼─────────────────┤
-│ EBADF     │ fnmatch   │ urlquote_from_bytes │ Path            │
-│ ELOOP     │ functools │                     │ PosixPath       │
-│ ENOENT    │ io        │                     │ PurePath        │
-│ ENOTDIR   │ ntpath    │                     │ PurePosixPath   │
-│ S_ISBLK   │ os        │                     │ PureWindowsPath │
-│ S_ISCHR   │ posixpath │                     │ Sequence        │
-│ S_ISDIR   │ re        │                     │ WindowsPath     │
-│ S_ISFIFO  │ sys       │                     │                 │
-│ S_ISLNK   │ warnings  │                     │                 │
-│ S_ISREG   │           │                     │                 │
-│ S_ISSOCK  │           │                     │                 │
-└───────────┴───────────┴─────────────────────┴─────────────────┘
+╔ module: pathlib ══════╦═════════════════════╦═════════════════╗
+║ Constants ║ Modules   ║ Functions           ║ Classes         ║
+╠═══════════╬═══════════╬═════════════════════╬═════════════════╣
+║ EBADF     ║ fnmatch   ║ urlquote_from_bytes ║ Path            ║
+║ ELOOP     ║ functools ║                     ║ PosixPath       ║
+║ ENOENT    ║ io        ║                     ║ PurePath        ║
+║ ENOTDIR   ║ ntpath    ║                     ║ PurePosixPath   ║
+║ S_ISBLK   ║ os        ║                     ║ PureWindowsPath ║
+║ S_ISCHR   ║ posixpath ║                     ║ Sequence        ║
+║ S_ISDIR   ║ re        ║                     ║ WindowsPath     ║
+║ S_ISFIFO  ║ sys       ║                     ║                 ║
+║ S_ISLNK   ║ warnings  ║                     ║                 ║
+║ S_ISREG   ║           ║                     ║                 ║
+║ S_ISSOCK  ║           ║                     ║                 ║
+╚═══════════╩═══════════╩═════════════════════╩═════════════════╝
 ```
 
 ### Function
@@ -126,14 +126,14 @@ ex(a_function)
 ```
   Description:
 Kinds of arguments.
-┌ Function a_function -> complex ────────────────────┐
-│ Argument │ Default │ Type  │ Kind                  │
-├──────────┼─────────┼───────┼───────────────────────┤
-│ pos      │ ---     │ int   │ positional-only       │
-│ both     │ ---     │ float │ positional or keyword │
-│ untyped  │ 4       │ Any   │ positional or keyword │
-│ kw_only  │ 'blue'  │ str   │ keyword-only          │
-└──────────┴─────────┴───────┴───────────────────────┘
+╔ Function a_function -> complex ════════════════════╗
+║ Argument ║ Default ║ Type  ║ Kind                  ║
+╠══════════╬═════════╬═══════╬═══════════════════════╣
+║ pos      ║ ---     ║ int   ║ positional-only       ║
+║ both     ║ ---     ║ float ║ positional or keyword ║
+║ untyped  ║ 4       ║ Any   ║ positional or keyword ║
+║ kw_only  ║ 'blue'  ║ str   ║ keyword-only          ║
+╚══════════╩═════════╩═══════╩═══════════════════════╝
 ```
 
 ### Class
@@ -151,35 +151,35 @@ Request -> RequestHooksMixin -> object
   Description:
 A user-created :class:`Request <Request>` object.
 ...
-┌ type: Request ──┬──────┐
-│ Functions       │ Ops  │
-├─────────────────┼──────┤
-│ deregister_hook │ !=   │
-│ prepare         │ <    │
-│ register_hook   │ <=   │
-│                 │ ==   │
-│                 │ >    │
-│                 │ >=   │
-│                 │ hash │
-│                 │ str  │
-└─────────────────┴──────┘
+╔ type: Request ══╦══════╗
+║ Functions       ║ Ops  ║
+╠═════════════════╬══════╣
+║ deregister_hook ║ !=   ║
+║ prepare         ║ <    ║
+║ register_hook   ║ <=   ║
+║                 ║ ==   ║
+║                 ║ >    ║
+║                 ║ >=   ║
+║                 ║ hash ║
+║                 ║ str  ║
+╚═════════════════╩══════╝
   Description:
 A user-created :class:`Request <Request>` object.
 ...
-┌ Constructor ───────┐
-│ Argument │ Default │
-├──────────┼─────────┤
-│ method   │ None    │
-│ url      │ None    │
-│ headers  │ None    │
-│ files    │ None    │
-│ data     │ None    │
-│ params   │ None    │
-│ auth     │ None    │
-│ cookies  │ None    │
-│ hooks    │ None    │
-│ json     │ None    │
-└──────────┴─────────┘
+╔ Constructor ═══════╗
+║ Argument ║ Default ║
+╠══════════╬═════════╣
+║ method   ║ None    ║
+║ url      ║ None    ║
+║ headers  ║ None    ║
+║ files    ║ None    ║
+║ data     ║ None    ║
+║ params   ║ None    ║
+║ auth     ║ None    ║
+║ cookies  ║ None    ║
+║ hooks    ║ None    ║
+║ json     ║ None    ║
+╚══════════╩═════════╝
 ```
 
 ```python
@@ -193,31 +193,31 @@ Fraction -> Rational -> Real -> Complex -> Number -> object
   Description:
 This class implements rational numbers.
 ...
-┌ ABCMeta: Fraction ───────────────┬───────────────────────┬────────────┐
-│ Methods      │ Functions         │ Data                  │ Ops        │
-├──────────────┼───────────────────┼───────────────────────┼────────────┤
-│ from_decimal │ as_integer_ratio  │ denominator: property │ !=  ==     │
-│ from_float   │ conjugate         │ imag: property        │ %   >      │
-│              │ is_integer        │ numerator: property   │ *   >=     │
-│              │ limit_denominator │ real: property        │ **  abs    │
-│              │                   │                       │ +   bool   │
-│              │                   │                       │ +() divmod │
-│              │                   │                       │ -   float  │
-│              │                   │                       │ -() hash   │
-│              │                   │                       │ /   int    │
-│              │                   │                       │ //  round  │
-│              │                   │                       │ <   str    │
-│              │                   │                       │ <=         │
-└──────────────┴───────────────────┴───────────────────────┴────────────┘
+╔ ABCMeta: Fraction ═══════════════╦═══════════════════════╦════════════╗
+║ Methods      ║ Functions         ║ Data                  ║ Ops        ║
+╠══════════════╬═══════════════════╬═══════════════════════╬════════════╣
+║ from_decimal ║ as_integer_ratio  ║ denominator: property ║ !=  ==     ║
+║ from_float   ║ conjugate         ║ imag: property        ║ %   >      ║
+║              ║ is_integer        ║ numerator: property   ║ *   >=     ║
+║              ║ limit_denominator ║ real: property        ║ **  abs    ║
+║              ║                   ║                       ║ +   bool   ║
+║              ║                   ║                       ║ +() divmod ║
+║              ║                   ║                       ║ -   float  ║
+║              ║                   ║                       ║ -() hash   ║
+║              ║                   ║                       ║ /   int    ║
+║              ║                   ║                       ║ //  round  ║
+║              ║                   ║                       ║ <   str    ║
+║              ║                   ║                       ║ <=         ║
+╚══════════════╩═══════════════════╩═══════════════════════╩════════════╝
   Description:
 This class implements rational numbers.
 ...
-┌ Constructor ┬─────────┐
-│ Argument    │ Default │
-├─────────────┼─────────┤
-│ numerator   │ 0       │
-│ denominator │ None    │
-└─────────────┴─────────┘
+╔ Constructor ╦═════════╗
+║ Argument    ║ Default ║
+╠═════════════╬═════════╣
+║ numerator   ║ 0       ║
+║ denominator ║ None    ║
+╚═════════════╩═════════╝
 ```
 
 ## Automatic import

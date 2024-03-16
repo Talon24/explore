@@ -24,10 +24,10 @@ def main():
     with open("README_template.md", encoding="utf8") as infile:
         raw = infile.read()
     explor.TABLETYPE = terminaltables.DoubleTable
-    with open("README_doubletable.md", "w", encoding="utf8") as outfile:
-        outfile.write(re.sub(r"\*\*\*\*([\s\S]+?)\*\*\*\*", exec_and_catch_output, raw))
-    explor.TABLETYPE = terminaltables.SingleTable
     with open("README.md", "w", encoding="utf8") as outfile:
+        outfile.write(re.sub(r"\*\*\*\*([\s\S]+?)\*\*\*\*", exec_and_catch_output, raw))
+    explor.TABLETYPE = terminaltables.AsciiTable
+    with open("README_plain.md", "w", encoding="utf8") as outfile:
         outfile.write(re.sub(r"\*\*\*\*([\s\S]+?)\*\*\*\*", exec_and_catch_output, raw))
 
 

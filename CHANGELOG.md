@@ -1,5 +1,8 @@
 # Versions
 
+## 0.1.21
+- Add handling for extras that are listed in a modules `__all__`, but not actually present in the module (#3).
+
 ## 0.1.20
 - Fix issue in getting parent order not working for some classes that mingle with `__mro__`, like pymaybe.
 - Code refactoring, tests

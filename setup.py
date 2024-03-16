@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 import explor
 
-with open("README.md", encoding="utf8") as file:
+with open("README_plain.md", encoding="utf8") as file:
     description = file.read()
 
 setup(
@@ -37,5 +37,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 )

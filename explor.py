@@ -12,7 +12,7 @@ from __future__ import print_function
 
 __author__ = "Talon24"
 __license__ = "MIT"
-__version__ = "0.1.20"
+__version__ = "0.1.21"
 __maintainer__ = "Talon24"
 __url__ = "https://github.com/Talon24/explore"
 __status__ = "Development"
@@ -98,6 +98,12 @@ class ObjectProperties:
     def __init__(self, thing):
         items = set(dir(thing))
 
+        # Check for __all__ members that are not in dir()
+        if inspect.ismodule(thing) and hasattr(thing, "__all__"):
+            extras = set(thing.__all__).difference(items)
+            self.extras_all = sorted(extras)
+        else:
+            self.extras_all = []
         # Check if item is reachable
         for item in sorted(items):
             try:
@@ -195,6 +201,7 @@ class ObjectProperties:
             "Classes": self.classes,
             "Data": self.data,
             "Ops": self.ops,
+            "Extras": self.extras_all,
         }
 
     def color_types(self):
